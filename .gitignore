@@ -12,13 +12,21 @@ dist
 dist-ssr
 *.local
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+
+# Security
+.env
+.env.local
+.env.*
+
+# Data
+*.csv
+*.xlsx
+*.xls
+
+# Temporary Scripts
+analyze_csv.js
+analyze_csv.mjs
+inspect_header.mjs
+import_employees_debug.mjs
+import_employees_fetch.mjs
+remover_duplicatas.mjs
