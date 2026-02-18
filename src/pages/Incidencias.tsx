@@ -13,23 +13,19 @@ import { useLanguage } from '../i18n';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { Card } from '../components/ui/Card';
 import { AsyncSelect } from '../components/ui/AsyncSelect';
+import { useAuth } from '../contexts/AuthContext';
 
-// --- MOCK AUTH ---
-const MOCK_USERS = [
-    { email: 'demo@mastercorp.local', nome: 'Usuário Demo', depto: 'Operações' },
-    { email: 'rh@mastercorp.local', nome: 'Gestor RH', depto: 'RH' },
-    { email: 'ana.silva@mastercorp.local', nome: 'Ana Silva', depto: 'Comercial' },
-    { email: 'seguranca@mastercorp.local', nome: 'Técnico Segurança', depto: 'Segurança' },
-];
+// --- MOCK AUTH REMOVED ---
 
 export const Incidencias: React.FC = () => {
     const navigate = useNavigate();
     const { t } = useLanguage();
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<'resumen' | 'incidencias' | 'tarefas'>('incidencias');
 
-    // Auth State
-    const [currentUser, setCurrentUser] = useState(MOCK_USERS[0]);
-    const [currentDept, setCurrentDept] = useState('Operações');
+    // Auth State - syncing with context
+    // const [currentUser, setCurrentUser] = useState(MOCK_USERS[0]); // REMOVED
+    // const [currentDept, setCurrentDept] = useState('Operações'); // REMOVED
 
     // Data & Filters
     const [loading, setLoading] = useState(false);
@@ -195,7 +191,7 @@ export const Incidencias: React.FC = () => {
                 status: 'Aberto',
                 origem_tipo: finalOriginType,
                 origem_criacao: 'manual',
-                criado_por_nome: currentUser.email,
+                criado_por_nome: user?.email || 'Unknown',
                 playbook_id: baseForm.playbook_id || undefined,
                 context: finalContext,
                 // Quick Task Fields
@@ -250,19 +246,9 @@ export const Incidencias: React.FC = () => {
                 <div className="flex items-center gap-3 w-full md:w-auto">
                     <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
                         <User size={14} className="text-slate-400 dark:text-slate-500" />
-                        <select
-                            className="text-sm bg-transparent border-none focus:outline-none text-slate-700 dark:text-slate-200 font-medium cursor-pointer"
-                            value={currentUser.email}
-                            onChange={(e) => {
-                                const user = MOCK_USERS.find(u => u.email === e.target.value);
-                                if (user) {
-                                    setCurrentUser(user);
-                                    setCurrentDept(user.depto);
-                                }
-                            }}
-                        >
-                            {MOCK_USERS.map(u => <option key={u.email} value={u.email}>{u.nome}</option>)}
-                        </select>
+                        <span className="text-sm text-slate-700 dark:text-slate-200 font-medium">
+                            {user?.email}
+                        </span>
                     </div>
                     <div className="flex gap-2">
                         <button

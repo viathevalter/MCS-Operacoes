@@ -17,11 +17,21 @@ import { Departamentos } from './pages/admin/Departamentos';
 import { Funcionarios } from './pages/admin/Funcionarios';
 import { ImportarFuncionarios } from './pages/admin/ImportarFuncionarios';
 import { Tasks } from './pages/Tasks';
+import { LoginPage } from './pages/Login'; // New
 import type { Filters } from './services/types';
 import { authService } from './services/mock/auth.service';
 import { useLanguage } from './i18n';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
-const App: React.FC = () => {
+// Protected Route Component
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+};
+
+const AppContent: React.FC = () => {
   const [filters, setFilters] = useState<Filters>({
     monthRange: [new Date().toISOString().slice(0, 7), new Date().toISOString().slice(0, 7)],
     empresa: null,
@@ -30,13 +40,14 @@ const App: React.FC = () => {
   });
 
   const { setLanguage } = useLanguage();
+  const { user } = useAuth();
 
   useEffect(() => {
     // 1. Check User Profile Preference (Highest priority)
-    const user = authService.getCurrentUser();
+    // const user = authService.getCurrentUser(); // Legacy mock
 
-    if (user.language) {
-      setLanguage(user.language);
+    if (user?.profile?.role) { // Or language if we added it to profile
+      // setLanguage(user.language); // If we add language to profile
     } else {
       // 2. Fallback to LocalStorage (handled by Provider init) or 'pt'
       const savedLang = localStorage.getItem('app_lang');
@@ -46,7 +57,7 @@ const App: React.FC = () => {
         setLanguage('pt');
       }
     }
-  }, []);
+  }, [user]);
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
@@ -76,6 +87,21 @@ const App: React.FC = () => {
         </div>
       </main>
     </div>
+  );
+}
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <AppContent />
+          </ProtectedRoute>
+        } />
+      </Routes>
+    </AuthProvider>
   );
 };
 

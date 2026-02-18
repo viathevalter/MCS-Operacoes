@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { getAllTarefas, updateTarefa, assignTarefa } from '../services/incidencias';
 import { incidentTaskService } from '../services/mock/incidentTasks.service';
-import { authService, User } from '../services/mock/auth.service';
+import { useAuth } from '../contexts/AuthContext';
 import type { IncidenciaTarefaExpandida } from '../services/types';
 import { useLanguage } from '../i18n';
 import { ContextCard } from '../components/ContextCard';
@@ -17,7 +17,8 @@ import { Card } from '../components/ui/Card';
 export const Tasks: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const [currentUser, setCurrentUser] = useState<User>(authService.getCurrentUser());
+    const { user } = useAuth();
+    const [currentUser, setCurrentUser] = useState<any>(user || {}); // Fallback/Compatibility
     const { t } = useLanguage();
 
     // Data State
@@ -52,6 +53,12 @@ export const Tasks: React.FC = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (user) {
+            setCurrentUser(user);
+        }
+    }, [user]);
 
     useEffect(() => {
         const searchId = searchParams.get('search');
@@ -175,7 +182,7 @@ export const Tasks: React.FC = () => {
                         >
                             <Briefcase size={16} /> {t('tasks.tabs.setor')}
                         </button>
-                        {currentUser.role === 'admin' && (
+                        {user?.profile?.role === 'admin' && (
                             <button
                                 onClick={() => setActiveTab('todas')}
                                 className={`pb-4 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-2 ${activeTab === 'todas'
