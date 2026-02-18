@@ -2,9 +2,11 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Activity, AlertCircle, Box, Briefcase, Building, CheckSquare, FileText, LayoutDashboard, ListTodo, Settings, ShoppingCart, Upload, UserCog, Users } from 'lucide-react';
 import { useLanguage } from '../i18n';
+import { useAuth } from '../contexts/AuthContext';
 
 export const Sidebar: React.FC = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
 
   const NavItem = ({ to, icon: Icon, label }: any) => (
     <NavLink
@@ -26,6 +28,17 @@ export const Sidebar: React.FC = () => {
       <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{label}</p>
     </div>
   );
+
+  // Helper to get initials
+  const getInitials = (name?: string, email?: string) => {
+    if (name) {
+      return name.substring(0, 2).toUpperCase();
+    }
+    if (email) {
+      return email.substring(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
 
   return (
     <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen fixed left-0 top-0 flex flex-col z-20 overflow-y-auto transition-colors duration-300">
@@ -69,11 +82,15 @@ export const Sidebar: React.FC = () => {
         <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-100 dark:border-slate-700">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold text-xs">
-              AS
+              {getInitials(user?.profile?.full_name, user?.email)}
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">Ana Silva</p>
-              <p className="text-[10px] text-slate-400">Admin</p>
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                {user?.profile?.full_name || user?.email?.split('@')[0]}
+              </p>
+              <p className="text-[10px] text-slate-400">
+                {user?.profile?.role || 'User'}
+              </p>
             </div>
           </div>
         </div>

@@ -18,7 +18,7 @@ interface AuthContextType {
     user: User | null;
     session: Session | null;
     loading: boolean;
-    signIn: () => Promise<void>; // Simple redirect to login or stub
+    signIn: () => Promise<void>;
     signOut: () => Promise<void>;
 }
 
@@ -62,9 +62,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const fetchProfile = async (authUser: AuthUser) => {
         try {
+            // Updated to use mcs_users table
             const { data: profile, error } = await supabase
-                .from('profiles')
-                .select('*')
+                .from('mcs_users')
+                .select('role, department_id, display_name, language')
                 .eq('id', authUser.id)
                 .single();
 
@@ -75,7 +76,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Merge auth user with profile data
             const fullUser: User = {
                 ...authUser,
-                profile: profile || { role: 'user' }, // Default to user if no profile
+                profile: profile ? {
+                    role: profile.role as 'admin' | 'user' | 'manager',
+                    department_id: profile.department_id,
+                    full_name: profile.display_name,
+                    // avatar_url is not in mcs_users yet, so undefined
+                } : { role: 'user' },
                 isAdmin: profile?.role === 'admin',
             };
 
@@ -90,13 +96,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const signIn = async () => {
-        // For now, just redirect to a login route or trigger standard supabase UI
-        // In this app structure, we might need a dedicated Login page.
-        // For dev/test, we can use:
-        // await supabase.auth.signInWithOAuth({ provider: 'google' });
-        // Or email/password.
-        // Let's assume there's a LoginPage component or we use the UI.
-        // For this context, we just expose the state.
         console.log('SignIn triggered - implement login UI');
     };
 
