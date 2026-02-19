@@ -728,7 +728,7 @@ export const Incidencias: React.FC = () => {
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
                                             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Departamento Responsável</label>
                                             <select
@@ -743,6 +743,19 @@ export const Incidencias: React.FC = () => {
                                                 ) : (
                                                     <option value="">Carregando...</option>
                                                 )}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Prioridade</label>
+                                            <select
+                                                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
+                                                value={baseForm.impacto}
+                                                onChange={(e) => setBaseForm({ ...baseForm, impacto: e.target.value as any })}
+                                            >
+                                                <option value="Baixo">Baixo</option>
+                                                <option value="Médio">Médio</option>
+                                                <option value="Alto">Alto</option>
+                                                <option value="Crítico">Urgente / Crítico</option>
                                             </select>
                                         </div>
                                         <div>
