@@ -1,12 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Activity, AlertCircle, Box, Briefcase, Building, CheckSquare, FileText, LayoutDashboard, ListTodo, Settings, ShoppingCart, Upload, UserCog, Users } from 'lucide-react';
+import { Activity, AlertCircle, Box, Briefcase, Building, CheckSquare, FileText, LayoutDashboard, ListTodo, Settings, ShoppingCart, Upload, UserCog, Users, LogOut } from 'lucide-react';
 import { useLanguage } from '../i18n';
 import { useAuth } from '../contexts/AuthContext';
 
 export const Sidebar: React.FC = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   const NavItem = ({ to, icon: Icon, label }: any) => (
     <NavLink
@@ -75,24 +75,33 @@ export const Sidebar: React.FC = () => {
           <NavItem to="/admin/departamentos" icon={Building} label={t('menu.departamentos')} />
           <NavItem to="/admin/funcionarios" icon={UserCog} label={t('menu.funcionarios')} />
           <NavItem to="/admin/importar-funcionarios" icon={Upload} label="Importar Dados" />
+          <NavItem to="/admin/usuarios" icon={Users} label="Usuários (Login)" />
         </div>
       </div>
 
       <div className="p-4 border-t border-slate-100 dark:border-slate-800 mt-auto">
-        <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-100 dark:border-slate-700">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold text-xs">
+        <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-100 dark:border-slate-700 flex justify-between items-center group">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex-shrink-0 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold text-xs">
               {getInitials(user?.profile?.full_name, user?.email)}
             </div>
-            <div>
-              <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">
                 {user?.profile?.full_name || user?.email?.split('@')[0]}
               </p>
-              <p className="text-[10px] text-slate-400">
+              <p className="text-[10px] text-slate-400 truncate">
                 {user?.profile?.role || 'User'}
               </p>
             </div>
           </div>
+
+          <button
+            onClick={signOut}
+            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+            title="Sair"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
         <div className="mt-3 text-[10px] text-slate-400 text-center">
           {t('menu.version')} • Enterprise

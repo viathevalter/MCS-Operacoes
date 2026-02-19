@@ -16,8 +16,9 @@ import { TaskTemplates } from './pages/TaskTemplates';
 import { Departamentos } from './pages/admin/Departamentos';
 import { Funcionarios } from './pages/admin/Funcionarios';
 import { ImportarFuncionarios } from './pages/admin/ImportarFuncionarios';
+import { UserManagement } from './pages/admin/UserManagement';
 import { Tasks } from './pages/Tasks';
-import { LoginPage } from './pages/Login'; // New
+import { LoginPage } from './pages/Login';
 import type { Filters } from './services/types';
 import { authService } from './services/mock/auth.service';
 import { useLanguage } from './i18n';
@@ -80,6 +81,11 @@ const AppContent: React.FC = () => {
             <Route path="/admin/departamentos" element={<Departamentos />} />
             <Route path="/admin/funcionarios" element={<Funcionarios />} />
             <Route path="/admin/importar-funcionarios" element={<ImportarFuncionarios />} />
+            <Route path="/admin/usuarios" element={
+              <ProtectedRoute>
+                <UserManagement />
+              </ProtectedRoute>
+            } />
             <Route path="/clientes" element={<Clientes />} />
             <Route path="/clientes/:id" element={<Cliente360 />} />
             <Route path="/comerciais/:id" element={<Comercial360 />} />

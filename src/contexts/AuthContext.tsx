@@ -40,6 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             if (session?.user) {
+                // Ensure loading stays true until profile is fetched
                 fetchProfile(session.user);
             } else {
                 setLoading(false);
@@ -50,7 +51,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
             if (session?.user) {
-                fetchProfile(session.user);
+                // Determine if we need to fetch profile (e.g. if user changed)
+                // For simplicity, fetch if we don't have a user or if ID differs
+                if (!user || user.id !== session.user.id) {
+                    setLoading(true); // BLOCK UI until profile loads
+                    fetchProfile(session.user);
+                }
             } else {
                 setUser(null);
                 setLoading(false);
@@ -58,10 +64,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         return () => subscription.unsubscribe();
-    }, []);
+    }, []); // Removed 'user' dependency to avoid loops
 
     const fetchProfile = async (authUser: AuthUser) => {
         try {
+            console.log('AuthContext: Fetching profile for', authUser.email);
             // Updated to use mcs_users table
             const { data: profile, error } = await supabase
                 .from('mcs_users')
@@ -69,8 +76,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .eq('id', authUser.id)
                 .single();
 
-            if (error && error.code !== 'PGRST116') {
-                console.error('Error fetching profile:', error);
+            if (error) {
+                console.error('AuthContext: Error fetching profile:', error);
+            } else {
+                console.log('AuthContext: Profile found:', profile);
             }
 
             // Merge auth user with profile data
@@ -85,9 +94,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isAdmin: profile?.role === 'admin',
             };
 
+            console.log('AuthContext: Setting user:', fullUser);
             setUser(fullUser);
         } catch (err) {
-            console.error('Unexpected error fetching profile:', err);
+            console.error('AuthContext: Unexpected error fetching profile:', err);
             // Fallback
             setUser({ ...authUser, isAdmin: false });
         } finally {
