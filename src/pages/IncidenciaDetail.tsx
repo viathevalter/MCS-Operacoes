@@ -448,10 +448,6 @@ export const IncidenciaDetail: React.FC = () => {
                                         </div>
                                     </div>
 
-
-                                    // ... (inside the component)
-
-                                    // ... (inside the map)
                                     <div className="flex-1">
                                         <div className="flex justify-between items-baseline mb-1">
                                             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
