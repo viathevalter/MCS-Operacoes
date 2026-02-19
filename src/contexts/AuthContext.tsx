@@ -69,10 +69,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const fetchProfile = async (authUser: AuthUser) => {
         try {
             console.log('AuthContext: Fetching profile for', authUser.email);
-            // Updated to use mcs_users table
+            // Updated to use public.profiles table
             const { data: profile, error } = await supabase
-                .from('mcs_users')
-                .select('role, department_id, display_name, language')
+                .from('profiles')
+                .select('role, department, full_name, email')
                 .eq('id', authUser.id)
                 .single();
 
@@ -87,8 +87,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 ...authUser,
                 profile: profile ? {
                     role: profile.role as 'admin' | 'user' | 'manager',
-                    department_id: profile.department_id,
-                    full_name: profile.display_name,
+                    department_id: profile.department, // Using Name as ID for now since app uses names mostly
+                    full_name: profile.full_name,
                     // avatar_url is not in mcs_users yet, so undefined
                 } : { role: 'user' },
                 isAdmin: profile?.role === 'admin',
