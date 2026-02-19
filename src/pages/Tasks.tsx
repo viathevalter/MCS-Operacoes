@@ -270,7 +270,18 @@ export const Tasks: React.FC = () => {
                                         const now = new Date();
                                         const dueDate = task.prazo ? new Date(task.prazo) : null;
                                         const isLate = dueDate ? dueDate < now : false;
-                                        const diffDays = dueDate ? Math.ceil((now.getTime() - dueDate.getTime()) / (1000 * 3600 * 24)) : 0;
+
+                                        const getOverdueLabel = () => {
+                                            if (!dueDate) return '';
+                                            const diffMs = now.getTime() - dueDate.getTime();
+                                            const diffMins = Math.floor(diffMs / 60000);
+                                            const diffHrs = Math.floor(diffMins / 60);
+                                            const diffDays = Math.floor(diffHrs / 24);
+
+                                            if (diffDays > 0) return `${diffDays}d ${diffHrs % 24}h`;
+                                            if (diffHrs > 0) return `${diffHrs}h ${diffMins % 60}m`;
+                                            return `${diffMins}m`;
+                                        };
 
                                         return (
                                             <tr key={task.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group border-b border-slate-100 dark:border-slate-800/50 last:border-0">
@@ -312,7 +323,7 @@ export const Tasks: React.FC = () => {
                                                             {!isDone && isLate && (
                                                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-rose-50 dark:bg-rose-900/20 px-1.5 py-0.5 rounded w-fit mt-1 border border-rose-100 dark:border-rose-900">
                                                                     <AlertCircle size={10} />
-                                                                    {t('tasks.vencida_ha', { days: diffDays })}
+                                                                    {t('tasks.vencida_ha', { days: '' }).replace('ha  dias', '').replace('há  dias', '')} {getOverdueLabel()}
                                                                 </span>
                                                             )}
                                                         </div>

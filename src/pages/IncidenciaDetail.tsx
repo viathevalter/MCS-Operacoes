@@ -154,14 +154,19 @@ export const IncidenciaDetail: React.FC = () => {
         return `${diffMins}m`;
     };
 
-    const getOverdueInfo = (dueAt?: string, status?: string) => {
+    const getOverdueLabel = (dueAt?: string, status?: string) => {
         if (!dueAt || status === 'Concluida') return null;
         const now = new Date();
         const due = new Date(dueAt);
         if (due < now) {
             const diffMs = now.getTime() - due.getTime();
-            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-            return { days: diffDays };
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHrs = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHrs / 24);
+
+            if (diffDays > 0) return `${diffDays}d ${diffHrs % 24}h`;
+            if (diffHrs > 0) return `${diffHrs}h ${diffMins % 60}m`;
+            return `${diffMins}m`;
         }
         return null;
     };
@@ -253,7 +258,7 @@ export const IncidenciaDetail: React.FC = () => {
                         {tarefas.length === 0 && <div className="p-6 text-center text-slate-400 dark:text-slate-500 text-sm">{t('incidencias.detail.no_tasks')}</div>}
 
                         {tarefas.map((task) => {
-                            const overdue = getOverdueInfo(task.prazo, task.status);
+                            const overdueLabel = getOverdueLabel(task.prazo, task.status);
                             const duration = task.status === 'Concluida' ? calculateDuration(task.started_at, task.completed_at) : null;
                             const taskStatusDisplay = t(`tasks.status.${task.status}` as any) || task.status;
 
@@ -280,10 +285,10 @@ export const IncidenciaDetail: React.FC = () => {
                                                 <div>
                                                     <div className={`font-medium text-sm flex items-center gap-2 ${task.status === 'Concluida' ? 'text-slate-500 dark:text-slate-500 line-through' : 'text-slate-800 dark:text-slate-200'}`}>
                                                         {task.titulo}
-                                                        {overdue && (
+                                                        {overdueLabel && (
                                                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] rounded font-bold uppercase no-underline">
                                                                 <AlertCircle size={10} />
-                                                                {t('tasks.vencida_ha', { days: overdue.days })}
+                                                                {t('tasks.vencida_ha', { days: '' }).replace('ha  dias', '').replace('há  dias', '')} {overdueLabel}
                                                             </span>
                                                         )}
                                                     </div>
