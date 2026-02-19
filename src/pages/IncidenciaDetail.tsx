@@ -8,7 +8,7 @@ import {
 import {
     getIncidencia, listTarefas, listLogs, addLog, updateTarefa, createTarefa, assignTarefa, updateIncidencia
 } from '../services/incidencias';
-import { authService } from '../services/mock/auth.service';
+import { useAuth } from '../contexts/AuthContext';
 import type { Incidencia, IncidenciaTarefa, IncidenciaLog } from '../services/types';
 import { useLanguage } from '../i18n';
 import { ContextCard } from '../components/ContextCard';
@@ -17,7 +17,7 @@ export const IncidenciaDetail: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { t } = useLanguage();
-    const currentUser = authService.getCurrentUser();
+    const { user } = useAuth();
 
     const [loading, setLoading] = useState(true);
     const [incidencia, setIncidencia] = useState<Incidencia | null>(null);
@@ -50,9 +50,10 @@ export const IncidenciaDetail: React.FC = () => {
     }, [id]);
 
     const handleSendLog = async () => {
-        if (!newLogText.trim() || !incidencia) return;
+        if (!newLogText.trim() || !incidencia || !user) return;
         try {
-            await addLog(incidencia.id, newLogText, currentUser.name); // Pass User Name
+            const userName = user.profile?.full_name || user.email || 'Usuário';
+            await addLog(incidencia.id, newLogText, userName); // Pass User Name
             setNewLogText('');
             const l = await listLogs(incidencia.id);
             setLogs(l);
@@ -114,9 +115,10 @@ export const IncidenciaDetail: React.FC = () => {
     };
 
     const handleAssignToMe = async (taskId: string) => {
+        if (!user || !user.email) return;
         try {
-            await assignTarefa(taskId, currentUser.email);
-            setTarefas(tarefas.map(t => t.id === taskId ? { ...t, responsavel_email: currentUser.email } : t));
+            await assignTarefa(taskId, user.email);
+            setTarefas(tarefas.map(t => t.id === taskId ? { ...t, responsavel_email: user.email } : t));
         } catch (error) {
             console.error(error);
         }
