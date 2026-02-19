@@ -96,9 +96,12 @@ const AppContent: React.FC = () => {
   );
 }
 
+import { Toaster } from 'sonner';
+
 const App: React.FC = () => {
   return (
     <AuthProvider>
+      <Toaster richColors position="top-right" />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/*" element={

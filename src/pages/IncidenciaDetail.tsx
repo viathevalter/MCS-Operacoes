@@ -5,6 +5,7 @@ import {
     ArrowLeft, Calendar, CheckSquare, MessageSquare, Send, Plus,
     AlertTriangle, User, Building, Briefcase, FileText, CheckCircle, Circle, Save, X, Play, Clock, AlertCircle
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
     getIncidencia, listTarefas, listLogs, addLog, updateTarefa, createTarefa, assignTarefa, updateIncidencia
 } from '../services/incidencias';
@@ -64,8 +65,10 @@ export const IncidenciaDetail: React.FC = () => {
             setNewLogText('');
             const l = await listLogs(incidencia.id);
             setLogs(l);
+            toast.success("Log registrado com sucesso");
         } catch (error) {
             console.error(error);
+            toast.error("Erro ao registrar log");
         }
     };
 
@@ -106,9 +109,11 @@ export const IncidenciaDetail: React.FC = () => {
 
             const l = await listLogs(incidencia!.id); // Helper to refresh logs
             setLogs(l);
+            toast.success(`Status da tarefa atualizado: ${newStatus}`);
 
         } catch (error) {
             console.error(error);
+            toast.error("Erro ao atualizar status da tarefa");
         }
     };
 
@@ -126,8 +131,10 @@ export const IncidenciaDetail: React.FC = () => {
         try {
             await assignTarefa(taskId, user.email);
             setTarefas(tarefas.map(t => t.id === taskId ? { ...t, responsavel_email: user.email } : t));
+            toast.success("Tarefa atribuída a você");
         } catch (error) {
             console.error(error);
+            toast.error("Erro ao atribuir tarefa");
         }
     };
 
