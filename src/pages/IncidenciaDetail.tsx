@@ -329,7 +329,7 @@ export const IncidenciaDetail: React.FC = () => {
                                                     </span>
                                                 )}
                                                 {task.prazo && (
-                                                    <span className={`flex items-center gap-1 ${overdue ? 'text-red-500 dark:text-red-400 font-bold' : ''}`}>
+                                                    <span className={`flex items-center gap-1 ${overdueLabel ? 'text-red-500 dark:text-red-400 font-bold' : ''}`}>
                                                         <Calendar size={10} /> {new Date(task.prazo).toLocaleDateString()}
                                                     </span>
                                                 )}
