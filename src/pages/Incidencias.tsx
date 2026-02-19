@@ -41,6 +41,13 @@ export const Incidencias: React.FC = () => {
     const [modalType, setModalType] = useState<'task' | 'process'>('process');
     const [creationMode, setCreationMode] = useState<'manual' | 'origin'>('manual');
     const [quickContextType, setQuickContextType] = useState<'none' | 'client' | 'worker' | 'pedido'>('none');
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        // Update time every minute to keep SLAs fresh without performance impact
+        const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+        return () => clearInterval(timer);
+    }, []);
 
     // Common Fields
     const [baseForm, setBaseForm] = useState({
@@ -410,8 +417,8 @@ export const Incidencias: React.FC = () => {
                                                             {row.prazo_estimado ? (
                                                                 (() => {
                                                                     const deadline = new Date(row.prazo_estimado);
-                                                                    const now = new Date();
-                                                                    const diffMs = deadline.getTime() - now.getTime();
+                                                                    const diffMs = deadline.getTime() - currentTime.getTime();
+                                                                    const diffMins = Math.floor(diffMs / 60000);
                                                                     const diffHrs = Math.floor(diffMs / 3600000);
                                                                     const diffDays = Math.floor(diffHrs / 24);
 
@@ -422,8 +429,13 @@ export const Incidencias: React.FC = () => {
                                                                         timeDisplay = 'Atrasado';
                                                                         timeColor = 'text-rose-500 font-bold';
                                                                     } else if (diffHrs < 24) {
-                                                                        timeDisplay = `${diffHrs}h rest.`;
-                                                                        timeColor = diffHrs < 4 ? 'text-amber-500 font-bold' : 'text-slate-500';
+                                                                        if (diffHrs < 1) {
+                                                                            timeDisplay = `${diffMins}m rest.`;
+                                                                            timeColor = 'text-amber-600 font-bold';
+                                                                        } else {
+                                                                            timeDisplay = `${diffHrs}h rest.`;
+                                                                            timeColor = diffHrs < 4 ? 'text-amber-500 font-bold' : 'text-slate-500';
+                                                                        }
                                                                     } else {
                                                                         timeDisplay = `${diffDays}d rest.`;
                                                                     }
