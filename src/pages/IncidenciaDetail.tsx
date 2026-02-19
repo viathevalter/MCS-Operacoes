@@ -52,7 +52,14 @@ export const IncidenciaDetail: React.FC = () => {
     const handleSendLog = async () => {
         if (!newLogText.trim() || !incidencia || !user) return;
         try {
-            const userName = user.profile?.full_name || user.email || 'Usuário';
+            let userName = user.profile?.full_name || user.email || 'Usuário';
+
+            // Format if it's an email
+            if (userName.includes('@')) {
+                const part = userName.split('@')[0];
+                userName = part.charAt(0).toUpperCase() + part.slice(1);
+            }
+
             await addLog(incidencia.id, newLogText, userName); // Pass User Name
             setNewLogText('');
             const l = await listLogs(incidencia.id);
@@ -171,6 +178,15 @@ export const IncidenciaDetail: React.FC = () => {
             return `${diffMins}m`;
         }
         return null;
+    };
+
+    const formatUserName = (name: string) => {
+        if (!name) return 'Sistema';
+        if (name.includes('@')) {
+            const part = name.split('@')[0];
+            return part.charAt(0).toUpperCase() + part.slice(1);
+        }
+        return name;
     };
 
     if (loading) return <div className="p-8 text-center text-slate-500">{t('common.loading')}</div>;
@@ -431,9 +447,16 @@ export const IncidenciaDetail: React.FC = () => {
                                             {log.usuario ? log.usuario.substring(0, 2).toUpperCase() : 'SY'}
                                         </div>
                                     </div>
+
+
+                                    // ... (inside the component)
+
+                                    // ... (inside the map)
                                     <div className="flex-1">
                                         <div className="flex justify-between items-baseline mb-1">
-                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{log.usuario || 'Sistema'}</span>
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                {formatUserName(log.usuario || 'Sistema')}
+                                            </span>
                                             <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{new Date(log.criado_em).toLocaleString()}</span>
                                         </div>
                                         <div className="text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 p-3 rounded-tr-lg rounded-br-lg rounded-bl-lg shadow-sm border border-slate-100 dark:border-slate-700/50 group-hover:border-slate-200 transition-colors whitespace-pre-wrap leading-relaxed">
