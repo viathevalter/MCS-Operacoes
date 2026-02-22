@@ -62,7 +62,8 @@ export const supabaseTaskService = {
             sla_days: task.sla_days || 1,
             due_at: task.due_at,
             scheduled_for: task.scheduled_for,
-            created_by: task.created_by
+            created_by: task.created_by,
+            assigned_to_email: task.assigned_to
         };
 
         const { data, error } = await supabase
