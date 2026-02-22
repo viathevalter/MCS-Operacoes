@@ -402,7 +402,7 @@ export const Tasks: React.FC = () => {
                                                     </td>
                                                     <td className="px-6 py-4 align-top text-right">
                                                         <div className="flex justify-end gap-2 items-center">
-                                                            {user?.id === task.created_by && (
+                                                            {(user?.id === task.created_by || user?.isAdmin) && (
                                                                 <>
                                                                     <button
                                                                         onClick={() => {
@@ -466,11 +466,13 @@ export const Tasks: React.FC = () => {
                     tasks={filteredData}
                     onTaskClick={(task) => navigate(`/incidencias/${task.incidencia_id}`)}
                     currentUserId={user?.id}
+                    onAssignMe={handleAssignToMe}
                     onEditClick={(task) => {
                         setEditingTask({ id: task.id, titulo: task.titulo, prazo: task.prazo ? task.prazo.split('T')[0] : '', scheduled_for: task.scheduled_for ? task.scheduled_for.split('T')[0] : '' });
                         setIsEditModalOpen(true);
                     }}
                     onDeleteClick={(task) => handleDeleteTask(task.id)}
+                    isAdmin={user?.isAdmin}
                 />
             )}
 

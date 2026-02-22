@@ -16,15 +16,19 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+// NOTE: To support isAdmin check in CalendarView without breaking existing props,
+// we can either add an isAdmin prop or use AuthContext directly.
+// Adding isAdmin prop is cleaner.
 interface CalendarViewProps {
     tasks: IncidenciaTarefaExpandida[];
     onTaskClick: (task: IncidenciaTarefaExpandida) => void;
     onEditClick?: (task: IncidenciaTarefaExpandida) => void;
     onDeleteClick?: (task: IncidenciaTarefaExpandida) => void;
     currentUserId?: string;
+    isAdmin?: boolean; // Added isAdmin prop
 }
 
-export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onTaskClick, onEditClick, onDeleteClick, currentUserId }) => {
+export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onTaskClick, onEditClick, onDeleteClick, currentUserId, isAdmin }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
@@ -180,7 +184,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onTaskClick, 
                                                         <div className="text-[9px] opacity-80 truncate">{task.departamento}</div>
                                                     )}
                                                 </div>
-                                                {currentUserId === task.created_by && (
+                                                {(currentUserId === task.created_by || isAdmin) && (
                                                     <div className="flex gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity ml-1">
                                                         {onEditClick && (
                                                             <button

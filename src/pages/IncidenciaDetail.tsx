@@ -354,7 +354,7 @@ export const IncidenciaDetail: React.FC = () => {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        {user?.id === task.created_by && (
+                                                        {(user?.id === task.created_by || user?.isAdmin) && (
                                                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
                                                                 <button onClick={() => handleEditTask(task)} className="text-slate-400 hover:text-blue-500 transition-colors" title="Editar Tarefa">
                                                                     <Edit size={12} />
