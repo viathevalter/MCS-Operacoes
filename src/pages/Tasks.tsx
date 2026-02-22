@@ -33,6 +33,7 @@ export const Tasks: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState<string>('Ativas');
     const [searchTerm, setSearchTerm] = useState('');
     const [onlyOverdue, setOnlyOverdue] = useState(false);
+    const [assigneeFilter, setAssigneeFilter] = useState<string>('Todos');
 
     // Template Form State
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
@@ -122,6 +123,16 @@ export const Tasks: React.FC = () => {
     };
 
     // --- Filtering Logic ---
+    const uniqueAssignees = useMemo(() => {
+        const assignees = new Set<string>();
+        allTasks.forEach(t => {
+            if (t.responsavel_email) {
+                assignees.add(t.responsavel_email);
+            }
+        });
+        return Array.from(assignees).sort();
+    }, [allTasks]);
+
     const filteredData = useMemo(() => {
         return allTasks.filter(t => {
             if (activeTab === 'minhas') {
@@ -135,6 +146,13 @@ export const Tasks: React.FC = () => {
                     if (t.status === 'Concluida') return false;
                 } else if (t.status !== statusFilter) {
                     return false;
+                }
+            }
+            if (assigneeFilter !== 'Todos') {
+                if (assigneeFilter === 'Unassigned') {
+                    if (t.responsavel_email) return false;
+                } else {
+                    if (t.responsavel_email !== assigneeFilter) return false;
                 }
             }
             if (searchTerm) {
@@ -152,7 +170,7 @@ export const Tasks: React.FC = () => {
             }
             return true;
         });
-    }, [allTasks, activeTab, statusFilter, searchTerm, onlyOverdue, currentUser.email]);
+    }, [allTasks, activeTab, statusFilter, searchTerm, onlyOverdue, currentUser.email, assigneeFilter]);
 
     const myTasks = allTasks.filter(t => t.responsavel_email === currentUser.email && t.status !== 'Concluida');
     const myPendingCount = myTasks.length;
@@ -263,6 +281,23 @@ export const Tasks: React.FC = () => {
                         <option value="Concluida">{t('tasks.status.Concluida')}</option>
                     </select>
 
+                    {activeTab !== 'minhas' && (
+                        <>
+                            <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1 hidden md:block"></div>
+                            <select
+                                className="bg-transparent py-2 px-3 text-sm text-slate-600 dark:text-slate-400 font-medium focus:outline-none cursor-pointer hover:text-slate-900 dark:hover:text-slate-200 transition-colors max-w-[150px] truncate"
+                                value={assigneeFilter}
+                                onChange={(e) => setAssigneeFilter(e.target.value)}
+                            >
+                                <option value="Todos">Resp: Todos</option>
+                                <option value="Unassigned">Não atribuído</option>
+                                {uniqueAssignees.map(email => (
+                                    <option key={email} value={email}>{email}</option>
+                                ))}
+                            </select>
+                        </>
+                    )}
+
                     <button
                         onClick={() => setOnlyOverdue(!onlyOverdue)}
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${onlyOverdue
@@ -274,9 +309,9 @@ export const Tasks: React.FC = () => {
                         {t('tasks.kpi.vencidas')}
                     </button>
 
-                    {(searchTerm || statusFilter !== 'Todos' || onlyOverdue) && (
+                    {(searchTerm || statusFilter !== 'Ativas' || assigneeFilter !== 'Todos' || onlyOverdue) && (
                         <button
-                            onClick={() => { setSearchTerm(''); setStatusFilter('Todos'); setOnlyOverdue(false); }}
+                            onClick={() => { setSearchTerm(''); setStatusFilter('Ativas'); setAssigneeFilter('Todos'); setOnlyOverdue(false); }}
                             className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
                         >
                             <X size={16} />
