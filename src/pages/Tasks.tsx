@@ -432,23 +432,25 @@ export const Tasks: React.FC = () => {
                                                                             {t('tasks.actions.assumir')}
                                                                         </button>
                                                                     )}
-                                                                    <button
-                                                                        onClick={() => handleAdvanceStatus(task)}
-                                                                        className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg shadow-sm transition-all font-medium ${task.status === 'Em Andamento'
-                                                                            ? 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow'
-                                                                            : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow'
-                                                                            }`}
-                                                                    >
-                                                                        {task.status === 'Em Andamento' ? (
-                                                                            <>
-                                                                                <CheckCircle size={14} /> {t('tasks.actions.concluir')}
-                                                                            </>
-                                                                        ) : (
-                                                                            <>
-                                                                                <Play size={14} fill="currentColor" /> {t('tasks.actions.iniciar')}
-                                                                            </>
-                                                                        )}
-                                                                    </button>
+                                                                    {task.responsavel_email === currentUser.email && (
+                                                                        <button
+                                                                            onClick={() => handleAdvanceStatus(task)}
+                                                                            className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg shadow-sm transition-all font-medium ${task.status === 'Em Andamento'
+                                                                                ? 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow'
+                                                                                : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow'
+                                                                                }`}
+                                                                        >
+                                                                            {task.status === 'Em Andamento' ? (
+                                                                                <>
+                                                                                    <CheckCircle size={14} /> {t('tasks.actions.concluir')}
+                                                                                </>
+                                                                            ) : (
+                                                                                <>
+                                                                                    <Play size={14} fill="currentColor" /> {t('tasks.actions.iniciar')}
+                                                                                </>
+                                                                            )}
+                                                                        </button>
+                                                                    )}
                                                                 </>
                                                             ) : (
                                                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900">
