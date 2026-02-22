@@ -165,7 +165,7 @@ export const fetchPedidos = async (filters: Filters): Promise<Pedido[]> => {
     // Map using id_cliente (which matches sp_id)
     Cliente: clientMap[String(p.id_cliente)] || p.cliente_nombre_snapshot || `Cliente ${p.id_cliente}`,
     Comercial: parseSharePointDisplay(p.comercial_responsable),
-    Empresa: 'Mastercorp',
+    Empresa: '',
     DataEmissao: p.fecha_emision,
     DataInicio: p.fecha_inicio_pedido,
     Status: parseSharePointDisplay(p.status_pedido) || 'Ativo',

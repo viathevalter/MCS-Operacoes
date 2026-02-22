@@ -19,7 +19,7 @@ export class SupabaseProvider implements IDataProvider {
             sp_created: row.created_at || new Date().toISOString(),
             sp_modified: row.updated_at || new Date().toISOString(),
             name: row.nombre_comercial || row.razon_social || 'Sem Nome',
-            company: 'Mastercorp', // Hardcoded or derived
+            company: '', // Removed hardcoded 'Mastercorp'
             industry: 'N/A',
             status: 'Ativo', // Defaulting as status column might be text
             email: row.email,

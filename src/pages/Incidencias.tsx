@@ -395,8 +395,6 @@ export const Incidencias: React.FC = () => {
                                                     <div className="font-semibold text-slate-800 dark:text-slate-100 mb-1 truncate max-w-sm">{row.titulo}</div>
                                                     <div className="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-2">
                                                         <span className="flex items-center gap-1"><Briefcase size={12} /> {row.cliente || 'Interno'}</span>
-                                                        <span>•</span>
-                                                        <span>{row.empresa || 'N/A'}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -471,362 +469,367 @@ export const Incidencias: React.FC = () => {
                         </table>
                     </div>
                 </div>
-            )}
+            )
+            }
 
             {/* === ABA TAREFAS === */}
-            {activeTab === 'tarefas' && (
-                <div className="p-12 text-center text-slate-500 border border-dashed border-slate-300 rounded-xl bg-slate-50">
-                    <p>Use a aba "Gestão Diária" para ver a fila detalhada de tarefas.</p>
-                </div>
-            )}
+            {
+                activeTab === 'tarefas' && (
+                    <div className="p-12 text-center text-slate-500 border border-dashed border-slate-300 rounded-xl bg-slate-50">
+                        <p>Use a aba "Gestão Diária" para ver a fila detalhada de tarefas.</p>
+                    </div>
+                )
+            }
 
             {/* --- CREATE INCIDENT MODAL --- */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] overflow-hidden transition-colors">
+            {
+                isModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
+                        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] overflow-hidden transition-colors">
 
-                        {/* Header */}
-                        <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg flex items-center gap-2">
-                                <div className={`p-2 rounded-lg ${modalType === 'task' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
-                                    {modalType === 'task' ? <Zap size={20} /> : <AlertTriangle size={20} />}
-                                </div>
-                                {modalType === 'task' ? 'Nova Tarefa Rápida' : 'Iniciar Novo Processo'}
-                            </h3>
-                            <button onClick={() => { setIsModalOpen(false); resetModal(); }} className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-slate-100 rounded">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-
-                            {modalType === 'process' ? (
-                                <>
-                                    {/* Creation Mode Tabs */}
-                                    <div className="flex space-x-6 border-b border-slate-200 dark:border-slate-800">
-                                        <button
-                                            onClick={() => { setCreationMode('manual'); setPreviewContext(null); setOriginItem(null); }}
-                                            className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${creationMode === 'manual' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-                                        >
-                                            <User size={16} /> Entrada Manual
-                                        </button>
-                                        <button
-                                            onClick={() => { setCreationMode('origin'); setPreviewContext(null); }}
-                                            className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${creationMode === 'origin' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-                                        >
-                                            <Database size={16} /> A partir de Origem
-                                        </button>
+                            {/* Header */}
+                            <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg flex items-center gap-2">
+                                    <div className={`p-2 rounded-lg ${modalType === 'task' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
+                                        {modalType === 'task' ? <Zap size={20} /> : <AlertTriangle size={20} />}
                                     </div>
+                                    {modalType === 'task' ? 'Nova Tarefa Rápida' : 'Iniciar Novo Processo'}
+                                </h3>
+                                <button onClick={() => { setIsModalOpen(false); resetModal(); }} className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-slate-100 rounded">
+                                    <X size={20} />
+                                </button>
+                            </div>
 
-                                    {/* Mode Specific Inputs */}
-                                    <div className="grid grid-cols-12 gap-6 p-5 bg-slate-50/80 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                                        {creationMode === 'manual' ? (
-                                            <div className="col-span-12 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <AsyncSelect
-                                                    label="Cliente / Empresa"
-                                                    placeholder="Buscar cliente..."
-                                                    onSearch={(q) => integrationFacade.searchClients(q)}
-                                                    onSelect={(item) => setManualSel(prev => ({ ...prev, client: item }))}
-                                                    renderItem={(c) => <div className="font-medium">{c.name} <span className="text-xs text-slate-400 block">{c.company}</span></div>}
-                                                    displayValue={manualSel.client?.name}
-                                                />
-                                                <AsyncSelect
-                                                    label="Pedido Relacionado"
-                                                    placeholder="Buscar pedido..."
-                                                    onSearch={(q) => integrationFacade.searchPedidos(q)}
-                                                    onSelect={(item) => setManualSel(prev => ({ ...prev, pedido: item }))}
-                                                    renderItem={(p) => <div className="font-medium">{p.codigo} <span className="text-xs text-slate-400 block">{p.status}</span></div>}
-                                                    displayValue={manualSel.pedido?.codigo}
-                                                />
-                                                <AsyncSelect
-                                                    label="Colaborador"
-                                                    placeholder="Buscar worker..."
-                                                    onSearch={(q) => integrationFacade.searchWorkers(q)}
-                                                    onSelect={(item) => setManualSel(prev => ({ ...prev, worker: item }))}
-                                                    renderItem={(w) => <div className="font-medium">{w.nome} <span className="text-xs text-slate-400 block">{w.documento}</span></div>}
-                                                    displayValue={manualSel.worker?.nome}
-                                                />
-                                                <AsyncSelect
-                                                    label="Obra / Projeto"
-                                                    placeholder="Buscar obra..."
-                                                    onSearch={(q) => integrationFacade.searchObras(q)}
-                                                    onSelect={(item) => setManualSel(prev => ({ ...prev, obra: item }))}
-                                                    renderItem={(o) => <div className="font-medium">{o.nome} <span className="text-xs text-slate-400 block">{o.codigo}</span></div>}
-                                                    displayValue={manualSel.obra?.nome}
-                                                />
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <div className="col-span-12 md:col-span-3">
-                                                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Tipo de Origem</label>
-                                                    <select
-                                                        className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
-                                                        value={originType}
-                                                        onChange={(e) => { setOriginType(e.target.value as any); setOriginItem(null); setPreviewContext(null); }}
-                                                    >
-                                                        <option value="reemplazo">Reemplazo</option>
-                                                        <option value="reubicacion">Reubicación</option>
-                                                    </select>
-                                                </div>
-                                                <div className="col-span-12 md:col-span-9">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+
+                                {modalType === 'process' ? (
+                                    <>
+                                        {/* Creation Mode Tabs */}
+                                        <div className="flex space-x-6 border-b border-slate-200 dark:border-slate-800">
+                                            <button
+                                                onClick={() => { setCreationMode('manual'); setPreviewContext(null); setOriginItem(null); }}
+                                                className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${creationMode === 'manual' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                            >
+                                                <User size={16} /> Entrada Manual
+                                            </button>
+                                            <button
+                                                onClick={() => { setCreationMode('origin'); setPreviewContext(null); }}
+                                                className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${creationMode === 'origin' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                            >
+                                                <Database size={16} /> A partir de Origem
+                                            </button>
+                                        </div>
+
+                                        {/* Mode Specific Inputs */}
+                                        <div className="grid grid-cols-12 gap-6 p-5 bg-slate-50/80 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                                            {creationMode === 'manual' ? (
+                                                <div className="col-span-12 grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <AsyncSelect
-                                                        label={`Buscar ${originType === 'reemplazo' ? 'Reemplazo' : 'Reubicación'}`}
-                                                        placeholder="Digite código ou ID..."
-                                                        onSearch={(q) => originType === 'reemplazo' ? integrationFacade.searchReemplazos(q) : integrationFacade.searchReubicaciones(q)}
-                                                        onSelect={handleOriginSelect}
-                                                        renderItem={(item) => (
-                                                            <div className="flex justify-between">
-                                                                <span className="font-medium">{item.codigo || `Item ${item.sp_id}`}</span>
-                                                                <span className="text-xs text-slate-400">{item.motivo} • {item.status}</span>
-                                                            </div>
-                                                        )}
-                                                        displayValue={originItem?.codigo}
+                                                        label="Cliente / Empresa"
+                                                        placeholder="Buscar cliente..."
+                                                        onSearch={(q) => integrationFacade.searchClients(q)}
+                                                        onSelect={(item) => setManualSel(prev => ({ ...prev, client: item }))}
+                                                        renderItem={(c) => <div className="font-medium">{c.name} <span className="text-xs text-slate-400 block">{c.company}</span></div>}
+                                                        displayValue={manualSel.client?.name}
+                                                    />
+                                                    <AsyncSelect
+                                                        label="Pedido Relacionado"
+                                                        placeholder="Buscar pedido..."
+                                                        onSearch={(q) => integrationFacade.searchPedidos(q)}
+                                                        onSelect={(item) => setManualSel(prev => ({ ...prev, pedido: item }))}
+                                                        renderItem={(p) => <div className="font-medium">{p.codigo} <span className="text-xs text-slate-400 block">{p.status}</span></div>}
+                                                        displayValue={manualSel.pedido?.codigo}
+                                                    />
+                                                    <AsyncSelect
+                                                        label="Colaborador"
+                                                        placeholder="Buscar worker..."
+                                                        onSearch={(q) => integrationFacade.searchWorkers(q)}
+                                                        onSelect={(item) => setManualSel(prev => ({ ...prev, worker: item }))}
+                                                        renderItem={(w) => <div className="font-medium">{w.nome} <span className="text-xs text-slate-400 block">{w.documento}</span></div>}
+                                                        displayValue={manualSel.worker?.nome}
+                                                    />
+                                                    <AsyncSelect
+                                                        label="Obra / Projeto"
+                                                        placeholder="Buscar obra..."
+                                                        onSearch={(q) => integrationFacade.searchObras(q)}
+                                                        onSelect={(item) => setManualSel(prev => ({ ...prev, obra: item }))}
+                                                        renderItem={(o) => <div className="font-medium">{o.nome} <span className="text-xs text-slate-400 block">{o.codigo}</span></div>}
+                                                        displayValue={manualSel.obra?.nome}
                                                     />
                                                 </div>
-
-                                                {/* Context Preview */}
-                                                {loadingContext && <div className="col-span-12 text-center text-sm text-slate-500 py-2">Construindo contexto...</div>}
-                                                {previewContext && (
-                                                    <div className="col-span-12 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg p-3 text-xs text-emerald-800 dark:text-emerald-200 space-y-1">
-                                                        <div className="font-bold flex items-center gap-1 mb-2"><Check size={14} /> Contexto Identificado</div>
-                                                        <div className="grid grid-cols-2 gap-2">
-                                                            {previewContext.client && <div>🏢 Cliente: <b>{previewContext.client.name}</b></div>}
-                                                            {previewContext.worker && <div>👷 Worker: <b>{previewContext.worker.name}</b></div>}
-                                                            {previewContext.pedido && <div>📄 Pedido: <b>{previewContext.pedido.ref}</b></div>}
-                                                            {previewContext.obra && <div>🏗️ Obra: <b>{previewContext.obra.name}</b></div>}
-                                                        </div>
+                                            ) : (
+                                                <>
+                                                    <div className="col-span-12 md:col-span-3">
+                                                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Tipo de Origem</label>
+                                                        <select
+                                                            className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
+                                                            value={originType}
+                                                            onChange={(e) => { setOriginType(e.target.value as any); setOriginItem(null); setPreviewContext(null); }}
+                                                        >
+                                                            <option value="reemplazo">Reemplazo</option>
+                                                            <option value="reubicacion">Reubicación</option>
+                                                        </select>
                                                     </div>
-                                                )}
-                                            </>
-                                        )}
-                                    </div>
+                                                    <div className="col-span-12 md:col-span-9">
+                                                        <AsyncSelect
+                                                            label={`Buscar ${originType === 'reemplazo' ? 'Reemplazo' : 'Reubicación'}`}
+                                                            placeholder="Digite código ou ID..."
+                                                            onSearch={(q) => originType === 'reemplazo' ? integrationFacade.searchReemplazos(q) : integrationFacade.searchReubicaciones(q)}
+                                                            onSelect={handleOriginSelect}
+                                                            renderItem={(item) => (
+                                                                <div className="flex justify-between">
+                                                                    <span className="font-medium">{item.codigo || `Item ${item.sp_id}`}</span>
+                                                                    <span className="text-xs text-slate-400">{item.motivo} • {item.status}</span>
+                                                                </div>
+                                                            )}
+                                                            displayValue={originItem?.codigo}
+                                                        />
+                                                    </div>
 
-                                    {/* Common Form Fields */}
-                                    <div className="grid grid-cols-12 gap-6">
-                                        <div className="col-span-8">
-                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Título do Processo</label>
+                                                    {/* Context Preview */}
+                                                    {loadingContext && <div className="col-span-12 text-center text-sm text-slate-500 py-2">Construindo contexto...</div>}
+                                                    {previewContext && (
+                                                        <div className="col-span-12 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg p-3 text-xs text-emerald-800 dark:text-emerald-200 space-y-1">
+                                                            <div className="font-bold flex items-center gap-1 mb-2"><Check size={14} /> Contexto Identificado</div>
+                                                            <div className="grid grid-cols-2 gap-2">
+                                                                {previewContext.client && <div>🏢 Cliente: <b>{previewContext.client.name}</b></div>}
+                                                                {previewContext.worker && <div>👷 Worker: <b>{previewContext.worker.name}</b></div>}
+                                                                {previewContext.pedido && <div>📄 Pedido: <b>{previewContext.pedido.ref}</b></div>}
+                                                                {previewContext.obra && <div>🏗️ Obra: <b>{previewContext.obra.name}</b></div>}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
+
+                                        {/* Common Form Fields */}
+                                        <div className="grid grid-cols-12 gap-6">
+                                            <div className="col-span-8">
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Título do Processo</label>
+                                                <input
+                                                    type="text" required
+                                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 text-slate-900 dark:text-slate-100 transition-all"
+                                                    placeholder="Ex: Falta de EPI na obra X..."
+                                                    value={baseForm.titulo}
+                                                    onChange={e => setBaseForm({ ...baseForm, titulo: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="col-span-4">
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Playbook (Automação)</label>
+                                                <select
+                                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
+                                                    value={baseForm.playbook_id}
+                                                    onChange={e => setBaseForm({ ...baseForm, playbook_id: e.target.value })}
+                                                >
+                                                    <option value="">-- Nenhum --</option>
+                                                    {playbooks.map(pb => (
+                                                        <option key={pb.id} value={pb.id}>{pb.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div className="col-span-12">
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Descrição Detalhada</label>
+                                                <textarea
+                                                    rows={3}
+                                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all resize-none text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                                                    placeholder="Descreva o ocorrido com detalhes..."
+                                                    value={baseForm.descricao}
+                                                    onChange={e => setBaseForm({ ...baseForm, descricao: e.target.value })}
+                                                />
+                                            </div>
+
+                                            <div className="col-span-6 md:col-span-6">
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Impacto</label>
+                                                <select
+                                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
+                                                    value={baseForm.impacto}
+                                                    onChange={e => setBaseForm({ ...baseForm, impacto: e.target.value as any })}
+                                                >
+                                                    <option value="Baixo">Baixo</option>
+                                                    <option value="Médio">Médio</option>
+                                                    <option value="Alto">Alto</option>
+                                                    <option value="Crítico">Crítico</option>
+                                                </select>
+                                            </div>
+                                            <div className="col-span-6 md:col-span-6">
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Categoria (Tipo)</label>
+                                                <select
+                                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
+                                                    value={baseForm.tipo}
+                                                    onChange={e => setBaseForm({ ...baseForm, tipo: e.target.value })}
+                                                >
+                                                    <option value="Geral">Geral</option>
+                                                    <option value="Falta">Falta</option>
+                                                    <option value="Acidente">Acidente</option>
+                                                    <option value="Qualidade">Qualidade</option>
+                                                    <option value="Segurança">Segurança</option>
+                                                    <option value="Reemplazo">Reemplazo</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg flex gap-3">
+                                            <Zap className="text-emerald-600 dark:text-emerald-400 flex-shrink-0" size={20} />
+                                            <div className="text-sm text-emerald-800 dark:text-emerald-200">
+                                                <p className="font-bold">Tarefa Rápida</p>
+                                                <p className="opacity-90">Cria uma ação imediata no quadro de tarefas, sem a complexidade de um processo completo.</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Contexto (Vincular a...)</label>
+                                                <select
+                                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
+                                                    value={quickContextType}
+                                                    onChange={(e) => {
+                                                        setQuickContextType(e.target.value as any);
+                                                        setManualSel({ client: null, pedido: null, worker: null, obra: null }); // Reset select
+                                                    }}
+                                                >
+                                                    <option value="none">Geral (Sem vínculo)</option>
+                                                    <option value="client">Cliente</option>
+                                                    <option value="worker">Colaborador</option>
+                                                    <option value="pedido">Pedido</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                {quickContextType === 'client' && (
+                                                    <AsyncSelect
+                                                        label="Buscar Cliente"
+                                                        placeholder="Nome do cliente..."
+                                                        onSearch={(q) => integrationFacade.searchClients(q)}
+                                                        onSelect={(item) => setManualSel(prev => ({ ...prev, client: item }))}
+                                                        renderItem={(c) => <div className="font-medium">{c.name}</div>}
+                                                        displayValue={manualSel.client?.name}
+                                                    />
+                                                )}
+                                                {quickContextType === 'worker' && (
+                                                    <AsyncSelect
+                                                        label="Buscar Colaborador"
+                                                        placeholder="Nome..."
+                                                        onSearch={(q) => integrationFacade.searchWorkers(q)}
+                                                        onSelect={(item) => setManualSel(prev => ({ ...prev, worker: item }))}
+                                                        renderItem={(w) => <div className="font-medium">{w.nome}</div>}
+                                                        displayValue={manualSel.worker?.nome}
+                                                    />
+                                                )}
+                                                {quickContextType === 'pedido' && (
+                                                    <AsyncSelect
+                                                        label="Buscar Pedido"
+                                                        placeholder="Código..."
+                                                        onSearch={(q) => integrationFacade.searchPedidos(q)}
+                                                        onSelect={(item) => setManualSel(prev => ({ ...prev, pedido: item }))}
+                                                        renderItem={(p) => <div className="font-medium">{p.codigo}</div>}
+                                                        displayValue={manualSel.pedido?.codigo}
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">O que precisa ser feito?</label>
                                             <input
                                                 type="text" required
-                                                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 text-slate-900 dark:text-slate-100 transition-all"
-                                                placeholder="Ex: Falta de EPI na obra X..."
+                                                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
+                                                placeholder="Ex: Ligar para Cliente X..."
                                                 value={baseForm.titulo}
                                                 onChange={e => setBaseForm({ ...baseForm, titulo: e.target.value })}
                                             />
                                         </div>
-                                        <div className="col-span-4">
-                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Playbook (Automação)</label>
-                                            <select
-                                                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
-                                                value={baseForm.playbook_id}
-                                                onChange={e => setBaseForm({ ...baseForm, playbook_id: e.target.value })}
-                                            >
-                                                <option value="">-- Nenhum --</option>
-                                                {playbooks.map(pb => (
-                                                    <option key={pb.id} value={pb.id}>{pb.name}</option>
-                                                ))}
-                                            </select>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Departamento Responsável</label>
+                                                <select
+                                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
+                                                    value={baseForm.departamento}
+                                                    onChange={(e) => setBaseForm({ ...baseForm, departamento: e.target.value })}
+                                                >
+                                                    {departments.length > 0 ? (
+                                                        departments.map(d => (
+                                                            <option key={d.id} value={d.name}>{d.name}</option>
+                                                        ))
+                                                    ) : (
+                                                        <option value="">Carregando...</option>
+                                                    )}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Prioridade</label>
+                                                <select
+                                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
+                                                    value={baseForm.impacto}
+                                                    onChange={(e) => setBaseForm({ ...baseForm, impacto: e.target.value as any })}
+                                                >
+                                                    <option value="Baixo">Baixo</option>
+                                                    <option value="Médio">Médio</option>
+                                                    <option value="Alto">Alto</option>
+                                                    <option value="Crítico">Urgente / Crítico</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Prazo (SLA)</label>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="number" min="1" max="100"
+                                                        className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
+                                                        value={baseForm.sla}
+                                                        onChange={(e) => setBaseForm({ ...baseForm, sla: Number(e.target.value) })}
+                                                    />
+                                                    <select
+                                                        className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
+                                                        value={baseForm.slaUnit}
+                                                        onChange={(e) => setBaseForm({ ...baseForm, slaUnit: e.target.value as 'hours' | 'days' })}
+                                                    >
+                                                        <option value="hours">Horas</option>
+                                                        <option value="days">Dias</option>
+                                                    </select>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div className="col-span-12">
-                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Descrição Detalhada</label>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Detalhes Adicionais (Opcional)</label>
                                             <textarea
-                                                rows={3}
-                                                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all resize-none text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600"
-                                                placeholder="Descreva o ocorrido com detalhes..."
+                                                rows={2}
+                                                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all resize-none text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                                                placeholder="Instruções..."
                                                 value={baseForm.descricao}
                                                 onChange={e => setBaseForm({ ...baseForm, descricao: e.target.value })}
                                             />
                                         </div>
+                                    </div>
+                                )}
 
-                                        <div className="col-span-6 md:col-span-6">
-                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Impacto</label>
-                                            <select
-                                                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
-                                                value={baseForm.impacto}
-                                                onChange={e => setBaseForm({ ...baseForm, impacto: e.target.value as any })}
-                                            >
-                                                <option value="Baixo">Baixo</option>
-                                                <option value="Médio">Médio</option>
-                                                <option value="Alto">Alto</option>
-                                                <option value="Crítico">Crítico</option>
-                                            </select>
-                                        </div>
-                                        <div className="col-span-6 md:col-span-6">
-                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Categoria (Tipo)</label>
-                                            <select
-                                                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
-                                                value={baseForm.tipo}
-                                                onChange={e => setBaseForm({ ...baseForm, tipo: e.target.value })}
-                                            >
-                                                <option value="Geral">Geral</option>
-                                                <option value="Falta">Falta</option>
-                                                <option value="Acidente">Acidente</option>
-                                                <option value="Qualidade">Qualidade</option>
-                                                <option value="Segurança">Segurança</option>
-                                                <option value="Reemplazo">Reemplazo</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="space-y-4">
-                                    <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg flex gap-3">
-                                        <Zap className="text-emerald-600 dark:text-emerald-400 flex-shrink-0" size={20} />
-                                        <div className="text-sm text-emerald-800 dark:text-emerald-200">
-                                            <p className="font-bold">Tarefa Rápida</p>
-                                            <p className="opacity-90">Cria uma ação imediata no quadro de tarefas, sem a complexidade de um processo completo.</p>
-                                        </div>
-                                    </div>
+                            </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Contexto (Vincular a...)</label>
-                                            <select
-                                                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
-                                                value={quickContextType}
-                                                onChange={(e) => {
-                                                    setQuickContextType(e.target.value as any);
-                                                    setManualSel({ client: null, pedido: null, worker: null, obra: null }); // Reset select
-                                                }}
-                                            >
-                                                <option value="none">Geral (Sem vínculo)</option>
-                                                <option value="client">Cliente</option>
-                                                <option value="worker">Colaborador</option>
-                                                <option value="pedido">Pedido</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            {quickContextType === 'client' && (
-                                                <AsyncSelect
-                                                    label="Buscar Cliente"
-                                                    placeholder="Nome do cliente..."
-                                                    onSearch={(q) => integrationFacade.searchClients(q)}
-                                                    onSelect={(item) => setManualSel(prev => ({ ...prev, client: item }))}
-                                                    renderItem={(c) => <div className="font-medium">{c.name}</div>}
-                                                    displayValue={manualSel.client?.name}
-                                                />
-                                            )}
-                                            {quickContextType === 'worker' && (
-                                                <AsyncSelect
-                                                    label="Buscar Colaborador"
-                                                    placeholder="Nome..."
-                                                    onSearch={(q) => integrationFacade.searchWorkers(q)}
-                                                    onSelect={(item) => setManualSel(prev => ({ ...prev, worker: item }))}
-                                                    renderItem={(w) => <div className="font-medium">{w.nome}</div>}
-                                                    displayValue={manualSel.worker?.nome}
-                                                />
-                                            )}
-                                            {quickContextType === 'pedido' && (
-                                                <AsyncSelect
-                                                    label="Buscar Pedido"
-                                                    placeholder="Código..."
-                                                    onSearch={(q) => integrationFacade.searchPedidos(q)}
-                                                    onSelect={(item) => setManualSel(prev => ({ ...prev, pedido: item }))}
-                                                    renderItem={(p) => <div className="font-medium">{p.codigo}</div>}
-                                                    displayValue={manualSel.pedido?.codigo}
-                                                />
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">O que precisa ser feito?</label>
-                                        <input
-                                            type="text" required
-                                            className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
-                                            placeholder="Ex: Ligar para Cliente X..."
-                                            value={baseForm.titulo}
-                                            onChange={e => setBaseForm({ ...baseForm, titulo: e.target.value })}
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Departamento Responsável</label>
-                                            <select
-                                                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
-                                                value={baseForm.departamento}
-                                                onChange={(e) => setBaseForm({ ...baseForm, departamento: e.target.value })}
-                                            >
-                                                {departments.length > 0 ? (
-                                                    departments.map(d => (
-                                                        <option key={d.id} value={d.name}>{d.name}</option>
-                                                    ))
-                                                ) : (
-                                                    <option value="">Carregando...</option>
-                                                )}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Prioridade</label>
-                                            <select
-                                                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
-                                                value={baseForm.impacto}
-                                                onChange={(e) => setBaseForm({ ...baseForm, impacto: e.target.value as any })}
-                                            >
-                                                <option value="Baixo">Baixo</option>
-                                                <option value="Médio">Médio</option>
-                                                <option value="Alto">Alto</option>
-                                                <option value="Crítico">Urgente / Crítico</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Prazo (SLA)</label>
-                                            <div className="flex gap-2">
-                                                <input
-                                                    type="number" min="1" max="100"
-                                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
-                                                    value={baseForm.sla}
-                                                    onChange={(e) => setBaseForm({ ...baseForm, sla: Number(e.target.value) })}
-                                                />
-                                                <select
-                                                    className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
-                                                    value={baseForm.slaUnit}
-                                                    onChange={(e) => setBaseForm({ ...baseForm, slaUnit: e.target.value as 'hours' | 'days' })}
-                                                >
-                                                    <option value="hours">Horas</option>
-                                                    <option value="days">Dias</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Detalhes Adicionais (Opcional)</label>
-                                        <textarea
-                                            rows={2}
-                                            className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all resize-none text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600"
-                                            placeholder="Instruções..."
-                                            value={baseForm.descricao}
-                                            onChange={e => setBaseForm({ ...baseForm, descricao: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                            )}
+                            {/* Footer */}
+                            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
+                                <button
+                                    onClick={() => { setIsModalOpen(false); resetModal(); }}
+                                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleCreate}
+                                    disabled={loading || (creationMode === 'origin' && !previewContext)}
+                                    className="px-6 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all hover:shadow"
+                                >
+                                    {loading && <Loader2 size={16} className="animate-spin" />}
+                                    Criar Incidência
+                                </button>
+                            </div>
 
                         </div>
-
-                        {/* Footer */}
-                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
-                            <button
-                                onClick={() => { setIsModalOpen(false); resetModal(); }}
-                                className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleCreate}
-                                disabled={loading || (creationMode === 'origin' && !previewContext)}
-                                className="px-6 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all hover:shadow"
-                            >
-                                {loading && <Loader2 size={16} className="animate-spin" />}
-                                Criar Incidência
-                            </button>
-                        </div>
-
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
