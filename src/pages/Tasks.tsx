@@ -127,7 +127,7 @@ export const Tasks: React.FC = () => {
             if (activeTab === 'minhas') {
                 if (t.responsavel_email !== currentUser.email) return false;
             } else if (activeTab === 'setor') {
-                const userDeptName = 'Operações';
+                const userDeptName = currentUser.profile?.department_id || '';
                 if (t.departamento !== userDeptName) return false;
             }
             if (statusFilter && statusFilter !== 'Todos') {
