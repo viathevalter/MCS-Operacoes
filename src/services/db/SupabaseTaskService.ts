@@ -61,7 +61,8 @@ export const supabaseTaskService = {
             department_id: task.department_id,
             sla_days: task.sla_days || 1,
             due_at: task.due_at,
-            scheduled_for: task.scheduled_for
+            scheduled_for: task.scheduled_for,
+            created_by: task.created_by
         };
 
         const { data, error } = await supabase
@@ -72,6 +73,15 @@ export const supabaseTaskService = {
 
         if (error) throw error;
         return mapToModel(data);
+    },
+
+    delete: async (taskId: string): Promise<void> => {
+        const { error } = await supabase
+            .from('mcs_incident_tasks')
+            .delete()
+            .eq('id', taskId);
+
+        if (error) throw error;
     }
 };
 
@@ -89,6 +99,7 @@ function mapToModel(row: any): IncidentTask {
         assigned_to: row.assigned_to_email,
         evidence: row.evidence, // Reading is fine if API returns logic for it (or logs), but DB column missing means undefined
         created_at: row.created_at,
+        created_by: row.created_by,
         started_at: row.started_at,
         completed_at: row.completed_at,
         last_status_change_at: row.last_status_change_at

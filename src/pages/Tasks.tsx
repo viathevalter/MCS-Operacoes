@@ -3,9 +3,10 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     CheckCircle, Calendar, Filter, Search, Briefcase, User as UserIcon,
-    AlertCircle, Layers, ArrowUpRight, CheckSquare, X, Play, Clock, AlertTriangle
+    AlertCircle, Layers, ArrowUpRight, CheckSquare, X, Play, Clock, AlertTriangle, Trash2, Edit
 } from 'lucide-react';
-import { getAllTarefas, updateTarefa, assignTarefa } from '../services/incidencias';
+import { toast } from 'sonner';
+import { getAllTarefas, updateTarefa, assignTarefa, deleteTarefa } from '../services/incidencias';
 import { incidentTaskService } from '../services/mock/incidentTasks.service';
 import { useAuth } from '../contexts/AuthContext';
 import type { IncidenciaTarefaExpandida } from '../services/types';
@@ -42,6 +43,10 @@ export const Tasks: React.FC = () => {
         sla: number;
         slaUnit: 'hours' | 'days';
     }>({ title: '', description: '', departmentId: '', sla: 1, slaUnit: 'days' });
+
+    // Edit Task State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingTask, setEditingTask] = useState<{ id: string, titulo: string, prazo: string, scheduled_for: string }>({ id: '', titulo: '', prazo: '', scheduled_for: '' });
 
     const loadData = async () => {
         setLoading(true);
@@ -85,6 +90,35 @@ export const Tasks: React.FC = () => {
     const handleAssignToMe = async (id: string) => {
         await assignTarefa(id, currentUser.email);
         await loadData();
+    };
+
+    const handleDeleteTask = async (id: string) => {
+        if (!confirm(t('tasks.actions.confirm_delete') || 'Tem certeza que deseja excluir esta tarefa?')) return;
+        try {
+            await deleteTarefa(id);
+            toast.success("Tarefa excluída");
+            await loadData();
+        } catch (error) {
+            console.error(error);
+            toast.error("Erro ao excluir tarefa");
+        }
+    };
+
+    const handleSaveEdit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await updateTarefa(editingTask.id, {
+                titulo: editingTask.titulo,
+                prazo: editingTask.prazo || undefined,
+                scheduled_for: editingTask.scheduled_for || undefined,
+            } as any);
+            toast.success("Tarefa atualizada");
+            setIsEditModalOpen(false);
+            await loadData();
+        } catch (error) {
+            console.error(error);
+            toast.error("Erro ao atualizar tarefa");
+        }
     };
 
     // --- Filtering Logic ---
@@ -367,39 +401,56 @@ export const Tasks: React.FC = () => {
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4 align-top text-right">
-                                                        {!isDone ? (
-                                                            <div className="flex justify-end gap-2">
-                                                                {!task.responsavel_email && (
+                                                        <div className="flex justify-end gap-2 items-center">
+                                                            {user?.id === task.created_by && (
+                                                                <>
                                                                     <button
-                                                                        onClick={() => handleAssignToMe(task.id)}
-                                                                        className="text-xs px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium shadow-sm hover:border-slate-300 dark:hover:border-slate-600"
-                                                                    >
-                                                                        {t('tasks.actions.assumir')}
+                                                                        onClick={() => {
+                                                                            setEditingTask({ id: task.id, titulo: task.titulo, prazo: task.prazo ? task.prazo.split('T')[0] : '', scheduled_for: task.scheduled_for ? task.scheduled_for.split('T')[0] : '' });
+                                                                            setIsEditModalOpen(true);
+                                                                        }}
+                                                                        className="text-slate-400 hover:text-blue-500 transition-colors p-1" title="Editar Tarefa">
+                                                                        <Edit size={14} />
                                                                     </button>
-                                                                )}
-                                                                <button
-                                                                    onClick={() => handleAdvanceStatus(task)}
-                                                                    className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg shadow-sm transition-all font-medium ${task.status === 'Em Andamento'
-                                                                        ? 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow'
-                                                                        : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow'
-                                                                        }`}
-                                                                >
-                                                                    {task.status === 'Em Andamento' ? (
-                                                                        <>
-                                                                            <CheckCircle size={14} /> {t('tasks.actions.concluir')}
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
-                                                                            <Play size={14} fill="currentColor" /> {t('tasks.actions.iniciar')}
-                                                                        </>
+                                                                    <button onClick={() => handleDeleteTask(task.id)} className="text-slate-400 hover:text-red-500 transition-colors p-1" title="Excluir Tarefa">
+                                                                        <Trash2 size={14} />
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            {!isDone ? (
+                                                                <>
+                                                                    {!task.responsavel_email && (
+                                                                        <button
+                                                                            onClick={() => handleAssignToMe(task.id)}
+                                                                            className="text-xs px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium shadow-sm hover:border-slate-300 dark:hover:border-slate-600"
+                                                                        >
+                                                                            {t('tasks.actions.assumir')}
+                                                                        </button>
                                                                     )}
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900">
-                                                                {t('tasks.actions.feito')}
-                                                            </span>
-                                                        )}
+                                                                    <button
+                                                                        onClick={() => handleAdvanceStatus(task)}
+                                                                        className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg shadow-sm transition-all font-medium ${task.status === 'Em Andamento'
+                                                                            ? 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow'
+                                                                            : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow'
+                                                                            }`}
+                                                                    >
+                                                                        {task.status === 'Em Andamento' ? (
+                                                                            <>
+                                                                                <CheckCircle size={14} /> {t('tasks.actions.concluir')}
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <Play size={14} fill="currentColor" /> {t('tasks.actions.iniciar')}
+                                                                            </>
+                                                                        )}
+                                                                    </button>
+                                                                </>
+                                                            ) : (
+                                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900">
+                                                                    {t('tasks.actions.feito')}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             );
@@ -414,8 +465,62 @@ export const Tasks: React.FC = () => {
                 <CalendarView
                     tasks={filteredData}
                     onTaskClick={(task) => navigate(`/incidencias/${task.incidencia_id}`)}
+                    currentUserId={user?.id}
+                    onEditClick={(task) => {
+                        setEditingTask({ id: task.id, titulo: task.titulo, prazo: task.prazo ? task.prazo.split('T')[0] : '', scheduled_for: task.scheduled_for ? task.scheduled_for.split('T')[0] : '' });
+                        setIsEditModalOpen(true);
+                    }}
+                    onDeleteClick={(task) => handleDeleteTask(task.id)}
                 />
             )}
-        </div>
+
+            {
+                isEditModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                        <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-sm animate-fade-in border border-slate-200 dark:border-slate-800">
+                            <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-800">
+                                <h3 className="font-bold text-slate-800 dark:text-slate-100">Editar Tarefa</h3>
+                                <button onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
+                            </div>
+                            <form onSubmit={handleSaveEdit} className="p-4 space-y-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Título da Tarefa</label>
+                                    <input
+                                        required
+                                        type="text"
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none"
+                                        value={editingTask.titulo}
+                                        onChange={e => setEditingTask({ ...editingTask, titulo: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Prazo Limite</label>
+                                    <input
+                                        type="date"
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none"
+                                        value={editingTask.prazo}
+                                        onChange={e => setEditingTask({ ...editingTask, prazo: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Agendado Para</label>
+                                    <input
+                                        type="date"
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none"
+                                        value={editingTask.scheduled_for}
+                                        onChange={e => setEditingTask({ ...editingTask, scheduled_for: e.target.value })}
+                                    />
+                                </div>
+                                <div className="pt-2 flex justify-end">
+                                    <button type="submit" className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded font-medium w-full transition-colors">
+                                        Salvar Alterações
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 };

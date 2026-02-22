@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Calendar, CheckSquare, MessageSquare, Send, Plus,
-    AlertTriangle, User, Building, Briefcase, FileText, CheckCircle, Circle, Save, X, Play, Clock, AlertCircle
+    AlertTriangle, User, Building, Briefcase, FileText, CheckCircle, Circle, Save, X, Play, Clock, AlertCircle, Edit, Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
-    getIncidencia, listTarefas, listLogs, addLog, updateTarefa, createTarefa, assignTarefa, updateIncidencia
+    getIncidencia, listTarefas, listLogs, addLog, updateTarefa, createTarefa, assignTarefa, updateIncidencia, deleteTarefa
 } from '../services/incidencias';
 import { useAuth } from '../contexts/AuthContext';
 import type { Incidencia, IncidenciaTarefa, IncidenciaLog } from '../services/types';
@@ -27,7 +27,7 @@ export const IncidenciaDetail: React.FC = () => {
 
     const [newLogText, setNewLogText] = useState('');
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-    const [newTask, setNewTask] = useState({ titulo: '', departamento: 'Operações', prazo: '' });
+    const [newTask, setNewTask] = useState<{ id?: string, titulo: string, departamento: string, prazo: string }>({ titulo: '', departamento: 'Operações', prazo: '' });
 
     const loadData = async () => {
         if (!id) return;
@@ -140,22 +140,58 @@ export const IncidenciaDetail: React.FC = () => {
 
     const handleCreateTask = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!incidencia) return;
+        if (!incidencia || !user) return;
         try {
-            await createTarefa({
-                incidencia_id: incidencia.id,
-                titulo: newTask.titulo,
-                departamento: newTask.departamento,
-                prazo: newTask.prazo || undefined,
-                status: 'Pendente',
-                ordem: tarefas.length + 1
-            });
+            if (newTask.id) {
+                // Edit Task Mode
+                await updateTarefa(newTask.id, {
+                    titulo: newTask.titulo,
+                    departamento: newTask.departamento,
+                    prazo: newTask.prazo || undefined
+                } as any);
+                toast.success("Tarefa atualizada com sucesso");
+            } else {
+                // Create Task Mode
+                await createTarefa({
+                    incidencia_id: incidencia.id,
+                    titulo: newTask.titulo,
+                    departamento: newTask.departamento,
+                    prazo: newTask.prazo || undefined,
+                    status: 'Pendente',
+                    ordem: tarefas.length + 1,
+                    created_by: user.id
+                });
+                toast.success("Tarefa criada com sucesso");
+            }
             setIsTaskModalOpen(false);
             setNewTask({ titulo: '', departamento: 'Operações', prazo: '' });
             const t = await listTarefas(incidencia.id);
             setTarefas(t);
         } catch (error) {
             console.error(error);
+            toast.error("Erro ao salvar tarefa");
+        }
+    };
+
+    const handleEditTask = (task: IncidenciaTarefa) => {
+        setNewTask({
+            id: task.id,
+            titulo: task.titulo,
+            departamento: task.departamento || 'Operações',
+            prazo: task.prazo ? task.prazo.split('T')[0] : ''
+        });
+        setIsTaskModalOpen(true);
+    };
+
+    const handleDeleteTask = async (taskId: string) => {
+        if (!confirm(t('incidencias.detail.confirm_delete_task') || 'Tem certeza que deseja excluir esta tarefa?')) return;
+        try {
+            await deleteTarefa(taskId);
+            setTarefas(tarefas.filter(t => t.id !== taskId));
+            toast.success("Tarefa excluída");
+        } catch (error) {
+            console.error(error);
+            toast.error("Erro ao excluir tarefa");
         }
     };
 
@@ -272,7 +308,7 @@ export const IncidenciaDetail: React.FC = () => {
                             {t('incidencias.detail.checklist')}
                         </h3>
                         <button
-                            onClick={() => setIsTaskModalOpen(true)}
+                            onClick={() => { setNewTask({ titulo: '', departamento: 'Operações', prazo: '' }); setIsTaskModalOpen(true); }}
                             className="text-xs flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 font-medium text-slate-600 dark:text-slate-300 transition-colors"
                         >
                             <Plus size={14} /> {t('incidencias.detail.add_task')}
@@ -308,13 +344,25 @@ export const IncidenciaDetail: React.FC = () => {
                                         <div className="flex-1">
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <div className={`font-medium text-sm flex items-center gap-2 ${task.status === 'Concluida' ? 'text-slate-500 dark:text-slate-500 line-through' : 'text-slate-800 dark:text-slate-200'}`}>
-                                                        {task.titulo}
-                                                        {overdueLabel && (
-                                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] rounded font-bold uppercase no-underline">
-                                                                <AlertCircle size={10} />
-                                                                {t('tasks.vencida_ha', { days: '' }).replace('ha  dias', '').replace('há  dias', '')} {overdueLabel}
-                                                            </span>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`font-medium text-sm flex items-center gap-2 ${task.status === 'Concluida' ? 'text-slate-500 dark:text-slate-500 line-through' : 'text-slate-800 dark:text-slate-200'}`}>
+                                                            {task.titulo}
+                                                            {overdueLabel && (
+                                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] rounded font-bold uppercase no-underline">
+                                                                    <AlertCircle size={10} />
+                                                                    {t('tasks.vencida_ha', { days: '' }).replace('ha  dias', '').replace('há  dias', '')} {overdueLabel}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {user?.id === task.created_by && (
+                                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                                                                <button onClick={() => handleEditTask(task)} className="text-slate-400 hover:text-blue-500 transition-colors" title="Editar Tarefa">
+                                                                    <Edit size={12} />
+                                                                </button>
+                                                                <button onClick={() => handleDeleteTask(task.id)} className="text-slate-400 hover:text-red-500 transition-colors" title="Excluir Tarefa">
+                                                                    <Trash2 size={12} />
+                                                                </button>
+                                                            </div>
                                                         )}
                                                     </div>
                                                     {duration && (
@@ -478,7 +526,9 @@ export const IncidenciaDetail: React.FC = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
                     <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-sm animate-fade-in border border-slate-200 dark:border-slate-800">
                         <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-800">
-                            <h3 className="font-bold text-slate-800 dark:text-slate-100">{t('incidencias.detail.new_task_title')}</h3>
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100">
+                                {newTask.id ? t('incidencias.detail.edit_task_title', 'Editar Tarefa') : t('incidencias.detail.new_task_title')}
+                            </h3>
                             <button onClick={() => setIsTaskModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={20} /></button>
                         </div>
                         <form onSubmit={handleCreateTask} className="p-4 space-y-4">

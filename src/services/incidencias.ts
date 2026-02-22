@@ -288,10 +288,15 @@ export const createTarefa = async (payload: any): Promise<IncidenciaTarefa | nul
         status: 'Pendente',
         due_at: payload.prazo || new Date().toISOString(),
         scheduled_for: payload.scheduled_for,
+        created_by: payload.created_by,
         sla_days: 1
     } as any);
 
     return toUiTarefa(newTask);
+};
+
+export const deleteTarefa = async (id: number | string): Promise<void> => {
+    await incidentTaskService.delete(String(id));
 };
 
 // --- PLAYBOOKS ADAPTERS ---

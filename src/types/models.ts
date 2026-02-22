@@ -110,6 +110,7 @@ export interface IncidentTask {
   assigned_to?: string; // email
   evidence?: string;
   created_at: string;
+  created_by?: string; // UUID from auth.users
 
   // New Time Tracking Fields
   started_at?: string;         // Quando passou para 'Em Andamento'

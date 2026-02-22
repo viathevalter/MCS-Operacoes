@@ -173,6 +173,7 @@ export interface IncidenciaTarefa {
   scheduled_for?: string; // ISO Date (Plano de Início/Agendado Para)
   evidencia?: string; // Texto ou Link
   responsavel_email?: string | null;
+  created_by?: string;
 
   // Time Tracking
   started_at?: string;

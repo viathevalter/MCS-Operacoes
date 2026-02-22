@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { IncidenciaTarefaExpandida } from '../services/types';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, AlertTriangle, Edit, Trash2 } from 'lucide-react';
 import {
     format,
     addMonths,
@@ -19,9 +19,12 @@ import { ptBR } from 'date-fns/locale';
 interface CalendarViewProps {
     tasks: IncidenciaTarefaExpandida[];
     onTaskClick: (task: IncidenciaTarefaExpandida) => void;
+    onEditClick?: (task: IncidenciaTarefaExpandida) => void;
+    onDeleteClick?: (task: IncidenciaTarefaExpandida) => void;
+    currentUserId?: string;
 }
 
-export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onTaskClick }) => {
+export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onTaskClick, onEditClick, onDeleteClick, currentUserId }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
@@ -143,8 +146,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onTaskClick }
                         >
                             <div className="flex justify-between items-start mb-2">
                                 <span className={`w-7 h-7 flex flex-col items-center justify-center rounded-full text-sm font-medium ${isCurrentDay
-                                        ? 'bg-blue-600 text-white shadow-sm'
-                                        : 'text-slate-700 dark:text-slate-300'
+                                    ? 'bg-blue-600 text-white shadow-sm'
+                                    : 'text-slate-700 dark:text-slate-300'
                                     }`}>
                                     {format(day, 'd')}
                                 </span>
@@ -177,6 +180,26 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onTaskClick }
                                                         <div className="text-[9px] opacity-80 truncate">{task.departamento}</div>
                                                     )}
                                                 </div>
+                                                {currentUserId === task.created_by && (
+                                                    <div className="flex gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity ml-1">
+                                                        {onEditClick && (
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); onEditClick(task); }}
+                                                                className="text-blue-600 hover:text-blue-800 p-0.5"
+                                                                title="Editar Tarefa">
+                                                                <Edit size={12} />
+                                                            </button>
+                                                        )}
+                                                        {onDeleteClick && (
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); onDeleteClick(task); }}
+                                                                className="text-red-500 hover:text-red-700 p-0.5"
+                                                                title="Excluir Tarefa">
+                                                                <Trash2 size={12} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     );
