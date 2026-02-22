@@ -512,7 +512,7 @@ export const Incidencias: React.FC = () => {
             {
                 isModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
-                        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] overflow-hidden transition-colors">
+                        <div className={`bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full flex flex-col max-h-[90vh] overflow-hidden transition-colors ${modalType === 'task' ? 'max-w-4xl' : 'max-w-3xl'}`}>
 
                             {/* Header */}
                             <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
