@@ -702,7 +702,7 @@ export const Incidencias: React.FC = () => {
                                                     value={baseForm.responsavel_email}
                                                     onChange={(e) => {
                                                         const selectedEmail = e.target.value;
-                                                        const userDept = employees.find(emp => emp.correoempresarial === selectedEmail)?.departamento;
+                                                        const userDept = employees.find(emp => emp.correoempresarial === selectedEmail)?.department_name;
                                                         setBaseForm({
                                                             ...baseForm,
                                                             responsavel_email: selectedEmail,
@@ -855,7 +855,7 @@ export const Incidencias: React.FC = () => {
                                                     value={baseForm.responsavel_email}
                                                     onChange={(e) => {
                                                         const selectedEmail = e.target.value;
-                                                        const userDept = employees.find(emp => emp.correoempresarial === selectedEmail)?.departamento;
+                                                        const userDept = employees.find(emp => emp.correoempresarial === selectedEmail)?.department_name;
                                                         setBaseForm({
                                                             ...baseForm,
                                                             responsavel_email: selectedEmail,
