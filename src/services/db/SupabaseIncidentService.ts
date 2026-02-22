@@ -85,6 +85,15 @@ export const supabaseIncidentService = {
 
         if (error) throw error;
         return mapToModel(data);
+    },
+
+    delete: async (id: string): Promise<void> => {
+        const { error } = await supabase
+            .from('mcs_incidents')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
     }
 };
 

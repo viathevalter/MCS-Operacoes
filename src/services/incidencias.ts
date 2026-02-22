@@ -225,6 +225,10 @@ export const updateIncidencia = async (id: string, patch: any): Promise<void> =>
     await incidentService.update(id, modelPatch);
 };
 
+export const deleteIncidencia = async (id: string): Promise<void> => {
+    await incidentService.delete(id);
+};
+
 export const listTarefas = async (incidenciaId: number | string): Promise<IncidenciaTarefa[]> => {
     const rawTasks = await incidentTaskService.listByIncident(String(incidenciaId));
     return Promise.all(rawTasks.map(toUiTarefa));

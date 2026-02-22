@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { listIncidencias, createIncidencia, getAllTarefas, getActivePlaybooks, listDepartments } from '../services/incidencias';
+import { listIncidencias, createIncidencia, getAllTarefas, getActivePlaybooks, listDepartments, deleteIncidencia } from '../services/incidencias';
 import { integrationFacade } from '../services/integration/integrationFacade';
 import { contextBuilder } from '../services/context/contextBuilder';
 import type { Incidencia, IncidenciaImpacto, IncidenciaTarefaExpandida, Playbook, IncidentContext } from '../services/types';
@@ -150,6 +149,21 @@ export const Incidencias: React.FC = () => {
         }
 
         setBaseForm(prev => ({ ...prev, ...updates }));
+    };
+
+    const handleDeleteIncidencia = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation(); // Evitar navegar p/ detalhe da incidência
+        if (!window.confirm('Tem certeza que deseja excluir toda essa incidência e suas tarefas?')) return;
+        setLoading(true);
+        try {
+            await deleteIncidencia(id);
+            await loadData();
+        } catch (err) {
+            console.error(err);
+            alert('Erro ao excluir incidência');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Create Action
@@ -477,7 +491,16 @@ export const Incidencias: React.FC = () => {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-right">
+                                                <td className="px-6 py-4 text-right flex items-center justify-end h-full gap-2">
+                                                    {(user?.id === row.criado_por_nome || user?.isAdmin) && (
+                                                        <button
+                                                            onClick={(e) => handleDeleteIncidencia(e, row.id)}
+                                                            className="text-slate-300 hover:text-red-500 transition-colors p-1"
+                                                            title="Excluir Incidência"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    )}
                                                     <ChevronRight size={18} className="text-slate-300 group-hover:text-blue-500 transition-colors" />
                                                 </td>
                                             </tr>
