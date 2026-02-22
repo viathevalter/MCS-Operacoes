@@ -10,6 +10,7 @@ import {
     getIncidencia, listTarefas, listLogs, addLog, updateTarefa, createTarefa, assignTarefa, updateIncidencia, deleteTarefa
 } from '../services/incidencias';
 import { useAuth } from '../contexts/AuthContext';
+import { supabaseEmployeeService } from '../services/db/SupabaseEmployeeService';
 import type { Incidencia, IncidenciaTarefa, IncidenciaLog } from '../services/types';
 import { useLanguage } from '../i18n';
 import { ContextCard } from '../components/ContextCard';
@@ -24,10 +25,11 @@ export const IncidenciaDetail: React.FC = () => {
     const [incidencia, setIncidencia] = useState<Incidencia | null>(null);
     const [tarefas, setTarefas] = useState<IncidenciaTarefa[]>([]);
     const [logs, setLogs] = useState<IncidenciaLog[]>([]);
+    const [employees, setEmployees] = useState<any[]>([]);
 
     const [newLogText, setNewLogText] = useState('');
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-    const [newTask, setNewTask] = useState<{ id?: string, titulo: string, departamento: string, prazo: string }>({ titulo: '', departamento: 'Operações', prazo: '' });
+    const [newTask, setNewTask] = useState<{ id?: string, titulo: string, departamento: string, prazo: string, responsavel_email?: string }>({ titulo: '', departamento: 'Operações', prazo: '', responsavel_email: '' });
 
     const loadData = async () => {
         if (!id) return;
@@ -35,9 +37,10 @@ export const IncidenciaDetail: React.FC = () => {
             const inc = await getIncidencia(id);
             setIncidencia(inc);
             if (inc) {
-                const [t, l] = await Promise.all([listTarefas(inc.id), listLogs(inc.id)]);
+                const [t, l, emps] = await Promise.all([listTarefas(inc.id), listLogs(inc.id), supabaseEmployeeService.list()]);
                 setTarefas(t);
                 setLogs(l);
+                setEmployees(emps.filter(e => e.active));
             }
         } catch (error) {
             console.error(error);
@@ -147,7 +150,8 @@ export const IncidenciaDetail: React.FC = () => {
                 await updateTarefa(newTask.id, {
                     titulo: newTask.titulo,
                     departamento: newTask.departamento,
-                    prazo: newTask.prazo || undefined
+                    prazo: newTask.prazo || undefined,
+                    responsavel_email: newTask.responsavel_email || null
                 } as any);
                 toast.success("Tarefa atualizada com sucesso");
             } else {
@@ -159,12 +163,13 @@ export const IncidenciaDetail: React.FC = () => {
                     prazo: newTask.prazo || undefined,
                     status: 'Pendente',
                     ordem: tarefas.length + 1,
-                    created_by: user.id
+                    created_by: user.id,
+                    responsavel_email: newTask.responsavel_email || undefined
                 });
                 toast.success("Tarefa criada com sucesso");
             }
             setIsTaskModalOpen(false);
-            setNewTask({ titulo: '', departamento: 'Operações', prazo: '' });
+            setNewTask({ titulo: '', departamento: 'Operações', prazo: '', responsavel_email: '' });
             const t = await listTarefas(incidencia.id);
             setTarefas(t);
         } catch (error) {
@@ -178,7 +183,8 @@ export const IncidenciaDetail: React.FC = () => {
             id: task.id,
             titulo: task.titulo,
             departamento: task.departamento || 'Operações',
-            prazo: task.prazo ? task.prazo.split('T')[0] : ''
+            prazo: task.prazo ? task.prazo.split('T')[0] : '',
+            responsavel_email: task.responsavel_email || ''
         });
         setIsTaskModalOpen(true);
     };
@@ -564,6 +570,19 @@ export const IncidenciaDetail: React.FC = () => {
                                     value={newTask.prazo}
                                     onChange={e => setNewTask({ ...newTask, prazo: e.target.value })}
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Atribuir a (Opcional)</label>
+                                <select
+                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none"
+                                    value={newTask.responsavel_email || ''}
+                                    onChange={e => setNewTask({ ...newTask, responsavel_email: e.target.value })}
+                                >
+                                    <option value="">Não atribuir (Fica livre)</option>
+                                    {employees.map(emp => (
+                                        <option key={emp.id} value={emp.correoempresarial}>{emp.nombrecompleto}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="pt-2 flex justify-end">
                                 <button type="submit" className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded font-medium w-full flex justify-center items-center gap-2 transition-colors">

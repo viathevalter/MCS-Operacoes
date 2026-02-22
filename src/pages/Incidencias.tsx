@@ -264,7 +264,7 @@ export const Incidencias: React.FC = () => {
     };
 
     const resetModal = () => {
-        setBaseForm({ titulo: '', descricao: '', impacto: 'Médio', tipo: 'Geral', playbook_id: '', departamento: 'Operações', sla: 1, slaUnit: 'days', scheduled_for: '' });
+        setBaseForm({ titulo: '', descricao: '', impacto: 'Médio', tipo: 'Geral', playbook_id: '', departamento: 'Operações', sla: 1, slaUnit: 'days', scheduled_for: '', responsavel_email: '' });
         setManualSel({ client: null, pedido: null, worker: null, obra: null });
         setOriginItem(null);
         setPreviewContext(null);
