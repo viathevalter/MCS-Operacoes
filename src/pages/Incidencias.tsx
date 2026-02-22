@@ -127,6 +127,27 @@ export const Incidencias: React.FC = () => {
         }
     };
 
+    // Handle Scheduled For Change
+    const handleScheduledDateChange = (val: string) => {
+        const updates: any = { scheduled_for: val };
+
+        if (val) {
+            const targetDate = new Date(val + 'T00:00:00');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const diffTime = targetDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays >= 0) {
+                updates.sla = diffDays === 0 ? 1 : diffDays;
+                updates.slaUnit = 'days';
+            }
+        }
+
+        setBaseForm(prev => ({ ...prev, ...updates }));
+    };
+
     // Create Action
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -780,7 +801,7 @@ export const Incidencias: React.FC = () => {
                                                     type="date"
                                                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
                                                     value={baseForm.scheduled_for}
-                                                    onChange={(e) => setBaseForm({ ...baseForm, scheduled_for: e.target.value })}
+                                                    onChange={(e) => handleScheduledDateChange(e.target.value)}
                                                 />
                                             </div>
                                             <div>
