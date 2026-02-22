@@ -696,7 +696,7 @@ export const Incidencias: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div className="col-span-12 md:col-span-4">
-                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Atribuir para (Opcional)</label>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Atribuir (Opcional)</label>
                                                 <select
                                                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
                                                     value={baseForm.responsavel_email}
@@ -841,7 +841,7 @@ export const Incidencias: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Atribuir para (Opcional)</label>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Atribuir (Opcional)</label>
                                                 <select
                                                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
                                                     value={baseForm.responsavel_email}
