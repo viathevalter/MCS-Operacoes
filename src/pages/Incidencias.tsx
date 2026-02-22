@@ -495,7 +495,7 @@ export const Incidencias: React.FC = () => {
                                     <div className={`p-2 rounded-lg ${modalType === 'task' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
                                         {modalType === 'task' ? <Zap size={20} /> : <AlertTriangle size={20} />}
                                     </div>
-                                    {modalType === 'task' ? 'Nova Tarefa Rápida' : 'Iniciar Novo Processo'}
+                                    {modalType === 'task' ? t('incidencias.modal_nova_tarefa.title_quick') : t('incidencias.modal_nova_tarefa.title_process')}
                                 </h3>
                                 <button onClick={() => { setIsModalOpen(false); resetModal(); }} className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-slate-100 rounded">
                                     <X size={20} />
@@ -677,14 +677,14 @@ export const Incidencias: React.FC = () => {
                                         <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg flex gap-3">
                                             <Zap className="text-emerald-600 dark:text-emerald-400 flex-shrink-0" size={20} />
                                             <div className="text-sm text-emerald-800 dark:text-emerald-200">
-                                                <p className="font-bold">Tarefa Rápida</p>
-                                                <p className="opacity-90">Cria uma ação imediata no quadro de tarefas, sem a complexidade de um processo completo.</p>
+                                                <p className="font-bold">{t('incidencias.modal_nova_tarefa.title_quick')}</p>
+                                                <p className="opacity-90">{t('incidencias.modal_nova_tarefa.desc_quick')}</p>
                                             </div>
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Contexto (Vincular a...)</label>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">{t('incidencias.modal_nova_tarefa.context_label')}</label>
                                                 <select
                                                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
                                                     value={quickContextType}
@@ -693,17 +693,17 @@ export const Incidencias: React.FC = () => {
                                                         setManualSel({ client: null, pedido: null, worker: null, obra: null }); // Reset select
                                                     }}
                                                 >
-                                                    <option value="none">Geral (Sem vínculo)</option>
-                                                    <option value="client">Cliente</option>
-                                                    <option value="worker">Colaborador</option>
-                                                    <option value="pedido">Pedido</option>
+                                                    <option value="none">{t('incidencias.modal_nova_tarefa.context_general')}</option>
+                                                    <option value="client">{t('incidencias.modal_nova_tarefa.context_client')}</option>
+                                                    <option value="worker">{t('incidencias.modal_nova_tarefa.context_worker')}</option>
+                                                    <option value="pedido">{t('incidencias.modal_nova_tarefa.context_order')}</option>
                                                 </select>
                                             </div>
                                             <div>
                                                 {quickContextType === 'client' && (
                                                     <AsyncSelect
-                                                        label="Buscar Cliente"
-                                                        placeholder="Nome do cliente..."
+                                                        label={t('incidencias.modal_nova_tarefa.search_client')}
+                                                        placeholder={t('incidencias.modal_nova_tarefa.search_client_placeholder')}
                                                         onSearch={(q) => integrationFacade.searchClients(q)}
                                                         onSelect={(item) => setManualSel(prev => ({ ...prev, client: item }))}
                                                         renderItem={(c) => <div className="font-medium">{c.name}</div>}
@@ -712,8 +712,8 @@ export const Incidencias: React.FC = () => {
                                                 )}
                                                 {quickContextType === 'worker' && (
                                                     <AsyncSelect
-                                                        label="Buscar Colaborador"
-                                                        placeholder="Nome..."
+                                                        label={t('incidencias.modal_nova_tarefa.search_worker')}
+                                                        placeholder={t('incidencias.modal_nova_tarefa.search_worker_placeholder')}
                                                         onSearch={(q) => integrationFacade.searchWorkers(q)}
                                                         onSelect={(item) => setManualSel(prev => ({ ...prev, worker: item }))}
                                                         renderItem={(w) => <div className="font-medium">{w.nome}</div>}
@@ -722,8 +722,8 @@ export const Incidencias: React.FC = () => {
                                                 )}
                                                 {quickContextType === 'pedido' && (
                                                     <AsyncSelect
-                                                        label="Buscar Pedido"
-                                                        placeholder="Código..."
+                                                        label={t('incidencias.modal_nova_tarefa.search_order')}
+                                                        placeholder={t('incidencias.modal_nova_tarefa.search_order_placeholder')}
                                                         onSearch={(q) => integrationFacade.searchPedidos(q)}
                                                         onSelect={(item) => setManualSel(prev => ({ ...prev, pedido: item }))}
                                                         renderItem={(p) => <div className="font-medium">{p.codigo}</div>}
@@ -734,11 +734,11 @@ export const Incidencias: React.FC = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">O que precisa ser feito?</label>
+                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">{t('incidencias.modal_nova_tarefa.what_needs_to_be_done')}</label>
                                             <input
                                                 type="text" required
                                                 className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
-                                                placeholder="Ex: Ligar para Cliente X..."
+                                                placeholder={t('incidencias.modal_nova_tarefa.what_needs_to_be_done_placeholder')}
                                                 value={baseForm.titulo}
                                                 onChange={e => setBaseForm({ ...baseForm, titulo: e.target.value })}
                                             />
@@ -746,7 +746,7 @@ export const Incidencias: React.FC = () => {
 
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                             <div>
-                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Departamento</label>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">{t('incidencias.modal_nova_tarefa.department')}</label>
                                                 <select
                                                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
                                                     value={baseForm.departamento}
@@ -757,25 +757,25 @@ export const Incidencias: React.FC = () => {
                                                             <option key={d.id} value={d.name}>{d.name}</option>
                                                         ))
                                                     ) : (
-                                                        <option value="">Carregando...</option>
+                                                        <option value="">{t('common.loading')}</option>
                                                     )}
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Prioridade</label>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">{t('incidencias.modal_nova_tarefa.priority')}</label>
                                                 <select
                                                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
                                                     value={baseForm.impacto}
                                                     onChange={(e) => setBaseForm({ ...baseForm, impacto: e.target.value as any })}
                                                 >
-                                                    <option value="Baixo">Baixo</option>
-                                                    <option value="Médio">Médio</option>
-                                                    <option value="Alto">Alto</option>
-                                                    <option value="Crítico">Urgente / Crítico</option>
+                                                    <option value="Baixo">{t('incidencias.impacto.Baixo')}</option>
+                                                    <option value="Médio">{t('incidencias.impacto.Médio')}</option>
+                                                    <option value="Alto">{t('incidencias.impacto.Alto')}</option>
+                                                    <option value="Crítico">{t('incidencias.impacto.Crítico')}</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Agendado Para</label>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">{t('incidencias.modal_nova_tarefa.scheduled_for')}</label>
                                                 <input
                                                     type="date"
                                                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
@@ -784,7 +784,7 @@ export const Incidencias: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Prazo (SLA)</label>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">{t('incidencias.modal_nova_tarefa.sla_deadline')}</label>
                                                 <div className="flex gap-2">
                                                     <input
                                                         type="number" min="1" max="100"
@@ -797,19 +797,19 @@ export const Incidencias: React.FC = () => {
                                                         value={baseForm.slaUnit}
                                                         onChange={(e) => setBaseForm({ ...baseForm, slaUnit: e.target.value as 'hours' | 'days' })}
                                                     >
-                                                        <option value="hours">Horas</option>
-                                                        <option value="days">Dias</option>
+                                                        <option value="hours">{t('incidencias.modal_nova_tarefa.time_hours')}</option>
+                                                        <option value="days">{t('incidencias.modal_nova_tarefa.time_days')}</option>
                                                     </select>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Detalhes Adicionais (Opcional)</label>
+                                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">{t('incidencias.modal_nova_tarefa.additional_details')}</label>
                                             <textarea
                                                 rows={2}
                                                 className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all resize-none text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600"
-                                                placeholder="Instruções..."
+                                                placeholder={t('incidencias.modal_nova_tarefa.additional_details_placeholder')}
                                                 value={baseForm.descricao}
                                                 onChange={e => setBaseForm({ ...baseForm, descricao: e.target.value })}
                                             />
@@ -825,7 +825,7 @@ export const Incidencias: React.FC = () => {
                                     onClick={() => { setIsModalOpen(false); resetModal(); }}
                                     className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
                                 >
-                                    Cancelar
+                                    {t('incidencias.modal_nova_tarefa.btn_cancel')}
                                 </button>
                                 <button
                                     onClick={handleCreate}
@@ -833,7 +833,7 @@ export const Incidencias: React.FC = () => {
                                     className="px-6 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all hover:shadow"
                                 >
                                     {loading && <Loader2 size={16} className="animate-spin" />}
-                                    Criar Incidência
+                                    {t('incidencias.modal_nova_tarefa.btn_create')}
                                 </button>
                             </div>
 
