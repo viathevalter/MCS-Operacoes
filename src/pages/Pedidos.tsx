@@ -69,8 +69,8 @@ export const Pedidos: React.FC<PedidosProps> = ({ filters, setFilters }) => {
                                 <td className="px-6 py-3 text-slate-500 dark:text-slate-400">{row.Comercial}</td>
                                 <td className="px-6 py-3">
                                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${row.Status === 'Ativo' ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' :
-                                            row.Status === 'Cancelado' ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400' :
-                                                'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                                        row.Status === 'Cancelado' ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400' :
+                                            'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                                         }`}>
                                         {row.Status}
                                     </span>
@@ -169,6 +169,7 @@ export const Pedidos: React.FC<PedidosProps> = ({ filters, setFilters }) => {
                                                     <tr>
                                                         <th className="px-4 py-2 text-left">Colaborador</th>
                                                         <th className="px-4 py-2 text-left">Perfil (Funcion)</th>
+                                                        <th className="px-4 py-2 text-left">Tipo</th>
                                                         <th className="px-4 py-2 text-right">Início</th>
                                                     </tr>
                                                 </thead>
@@ -181,13 +182,18 @@ export const Pedidos: React.FC<PedidosProps> = ({ filters, setFilters }) => {
                                                                     {alloc.funcionNome}
                                                                 </span>
                                                             </td>
+                                                            <td className="px-4 py-2">
+                                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                                                    {alloc.tipoAlocacao || 'Contratado'}
+                                                                </span>
+                                                            </td>
                                                             <td className="px-4 py-2 text-right text-slate-500 dark:text-slate-400 flex items-center justify-end gap-1">
                                                                 <Calendar size={12} /> {alloc.dataInicio}
                                                             </td>
                                                         </tr>
                                                     ))}
                                                     {(!details?.alocados || details.alocados.length === 0) && (
-                                                        <tr><td colSpan={3} className="px-4 py-3 text-center text-slate-400">Nenhum colaborador alocado.</td></tr>
+                                                        <tr><td colSpan={4} className="px-4 py-3 text-center text-slate-400">Nenhum colaborador alocado.</td></tr>
                                                     )}
                                                 </tbody>
                                             </table>

@@ -69,6 +69,7 @@ export interface ColaboradorAlocado {
   idFuncion: number; // FK to Funcion
   funcionNome: string; // Resolved name
   dataInicio: string;
+  tipoAlocacao?: string;
 }
 
 export interface Estimacion {

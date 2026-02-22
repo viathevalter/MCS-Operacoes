@@ -208,20 +208,20 @@ export const fetchPedidoDetails = async (pedidoId: number) => {
     resolvedName: item.nombre_perfil // Can rely on nombre_perfil for now as fallback
   }));
 
-  // Fetch allocations from contratados using cod_servico = codPedido
-  const { data: contratados, error: contratadosError } = await supabase!
-    .from('contratados')
+  // Fetch all allocations (contratados, reemplazos, reubicaciones) from the new view/table
+  const { data: colaboradores_alocados, error: colabsError } = await supabase!
+    .from('colaborador_por_pedido')
     .select('*')
-    .eq('cod_servico', codPedido);
+    .eq('codpedido', codPedido);
 
-  if (contratadosError) {
-    console.error('Error fetching contratados:', contratadosError);
+  if (colabsError) {
+    console.error('Error fetching colaboradores alocados:', colabsError);
   }
 
   // Fetch function names for allocations
   let functionMap: Record<string, string> = {};
-  if (contratados && contratados.length > 0) {
-    const functionIds = Array.from(new Set(contratados.map((c: any) => c.id_funcion).filter((id: any) => id)));
+  if (colaboradores_alocados && colaboradores_alocados.length > 0) {
+    const functionIds = Array.from(new Set(colaboradores_alocados.map((c: any) => c.idfuncion).filter((id: any) => id)));
 
     if (functionIds.length > 0) {
       const { data: funcoes, error: funcError } = await supabase!
@@ -239,12 +239,13 @@ export const fetchPedidoDetails = async (pedidoId: number) => {
     }
   }
 
-  const alocados: ColaboradorAlocado[] = (contratados || []).map((c: any) => ({
-    id: c.id,
-    nome: c.nombre,
-    idFuncion: Number(c.id_funcion) || 0,
-    funcionNome: functionMap[String(c.id_funcion)] || `Função ${c.id_funcion}`,
-    dataInicio: c.sp_created ? new Date(c.sp_created).toISOString().split('T')[0] : 'N/A'
+  const alocados: ColaboradorAlocado[] = (colaboradores_alocados || []).map((c: any) => ({
+    id: c.id || Math.random(), // fallback if id is somehow missing in the view aggregation
+    nome: c.nome_colab || c.idcolaborador || 'N/A',
+    idFuncion: Number(c.idfuncion) || 0,
+    funcionNome: functionMap[String(c.idfuncion)] || `Função ${c.idfuncion}`,
+    dataInicio: c.fechainiciopedido || 'N/A',
+    tipoAlocacao: c.tiposervico || 'Pedido/Contrato Inicial'
   }));
 
   return { itens, alocados };
@@ -304,40 +305,60 @@ export const fetchOperacao = async (filters: Filters) => {
         }
       }
 
-      // Fetch Colaboradores Reemplazados (Who left)
+      // Fetch Colaboradores Reemplazados (Who left) utilizing original codreemplazo
       let colabsMap: Record<string, any[]> = {};
       if (codReemplazos.length > 0) {
         const { data: colabs, error: colabsError } = await supabase!
-          .from('colaboradores_reemplazados')
-          .select('cod_reemplazo, nombre_colaborador, funcion')
-          .in('cod_reemplazo', codReemplazos);
+          .from('colaborador_por_pedido')
+          .select('codreemplazo, nome_colab, idfuncion')
+          .in('codreemplazo', codReemplazos)
+          .not('codreemplazo', 'is', null) // Ensure we only get those actually marked as replaced
+          .neq('codreemplazo', '');
 
         if (!colabsError && colabs) {
+          // pre-fetch function names
+          const fIds = Array.from(new Set(colabs.map((c: any) => c.idfuncion).filter(Boolean)));
+          let fMap: Record<string, string> = {};
+          if (fIds.length > 0) {
+            const { data: funcs } = await supabase!.from('funcion').select('sp_id, nombre').in('sp_id', fIds);
+            if (funcs) funcs.forEach((f: any) => { fMap[f.sp_id] = f.nombre; });
+          }
+
           colabs.forEach((c: any) => {
-            if (!colabsMap[c.cod_reemplazo]) colabsMap[c.cod_reemplazo] = [];
-            colabsMap[c.cod_reemplazo].push({
-              nome: c.nombre_colaborador || 'N/A',
-              funcao: c.funcion,
+            const key = c.codreemplazo;
+            if (!colabsMap[key]) colabsMap[key] = [];
+            colabsMap[key].push({
+              nome: c.nome_colab || 'N/A',
+              funcao: fMap[c.idfuncion] || `Função ${c.idfuncion}`,
               tipo: "Saiu"
             });
           });
         }
       }
 
-      // Fetch Contratados (Who entered - Reemplazo)
+      // Fetch Contratados (Who entered - Reemplazo) using new table
       if (codReemplazos.length > 0) {
         const { data: contratados, error: contError } = await supabase!
-          .from('contratados')
-          .select('cod_servico, nombre, id_funcion')
-          .in('cod_servico', codReemplazos);
+          .from('colaborador_por_pedido')
+          .select('codpedido, nome_colab, idfuncion')
+          .in('codpedido', codReemplazos)
+          .eq('tiposervico', 'Reemplazo');
 
         if (!contError && contratados) {
+          // pre-fetch function names
+          const fIds = Array.from(new Set(contratados.map((c: any) => c.idfuncion).filter(Boolean)));
+          let fMap: Record<string, string> = {};
+          if (fIds.length > 0) {
+            const { data: funcs } = await supabase!.from('funcion').select('sp_id, nombre').in('sp_id', fIds);
+            if (funcs) funcs.forEach((f: any) => { fMap[f.sp_id] = f.nombre; });
+          }
+
           contratados.forEach((c: any) => {
-            const key = c.cod_servico; // cod_servico links to codreemplazo
+            const key = c.codpedido; // codpedido links to codreemplazo
             if (!colabsMap[key]) colabsMap[key] = [];
             colabsMap[key].push({
-              nome: c.nombre || 'Contratado',
-              funcao: `Função ${c.id_funcion}`,
+              nome: c.nome_colab || 'Contratado',
+              funcao: fMap[c.idfuncion] || `Função ${c.idfuncion}`,
               tipo: "Entrou"
             });
           });
@@ -399,38 +420,33 @@ export const fetchOperacao = async (filters: Filters) => {
         }
       }
 
-      // Fetch Colaboradores Reubicados (Who moved)
+      // Fetch Colaboradores Reubicados (Who moved) using unified table
       let colabsMap: Record<string, any[]> = {};
       if (codReubicaciones.length > 0) {
-        // Adjust column name in 'in' clause if needed based on schema analysis
         const { data: colabs, error: colabsError } = await supabase!
-          .from('colaboradores_reubicados')
-          .select('cod_reubicacion, nombre_colaborador, funcion') // Taking a guess on FK name, might be cod_reubicaciones
-          .in('cod_reubicacion', codReubicaciones);
+          .from('colaborador_por_pedido')
+          .select('codpedido, nome_colab, idfuncion')
+          .in('codpedido', codReubicaciones)
+          .eq('tiposervico', 'Reubicacion');
 
         if (!colabsError && colabs) {
+          // pre-fetch function names
+          const fIds = Array.from(new Set(colabs.map((c: any) => c.idfuncion).filter(Boolean)));
+          let fMap: Record<string, string> = {};
+          if (fIds.length > 0) {
+            const { data: funcs } = await supabase!.from('funcion').select('sp_id, nombre').in('sp_id', fIds);
+            if (funcs) funcs.forEach((f: any) => { fMap[f.sp_id] = f.nombre; });
+          }
+
           colabs.forEach((c: any) => {
-            // Normalize key access
-            const key = c.cod_reubicacion;
+            const key = c.codpedido;
             if (!colabsMap[key]) colabsMap[key] = [];
             colabsMap[key].push({
-              nome: c.nombre_colaborador || 'N/A',
-              funcao: c.funcion,
+              nome: c.nome_colab || 'N/A',
+              funcao: fMap[c.idfuncion] || `Função ${c.idfuncion}`,
               tipo: "Mudou"
             });
           });
-        } else if (colabsError) {
-          // Fallback if FK name is different (e.g. cod_reubicaciones)
-          console.log("Retrying with cod_reubicaciones fk...");
-          /* 
-             Real implementation note: 
-             Ideally we know the schema. 
-             Based on previous `SELECT * FROM colaboradores_reubicados` (empty result but exists),
-             we saw `cod_reubicacion` in the result of `colaboradores_reubicados` schema check?
-             Wait, step 116 showed `colaboradores_reubicados` has `cod_reubicacion` column.
-             And `reubicaciones` has `cod_reubicaciones`. 
-             So the logic above seems correct: reubicaciones.cod_reubicaciones == colaboradores_reubicados.cod_reubicacion
-          */
         }
       }
 
