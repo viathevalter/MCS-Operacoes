@@ -37,6 +37,7 @@ export const supabaseTaskService = {
             }
         }
         if (patch.assigned_to) dbPatch.assigned_to_email = patch.assigned_to;
+        if (patch.scheduled_for !== undefined) dbPatch.scheduled_for = patch.scheduled_for;
         // evidence column missing in DB, skipping
         // if (patch.evidence) dbPatch.evidence = patch.evidence;
 
@@ -59,7 +60,8 @@ export const supabaseTaskService = {
             step_order: task.step_order || 1,
             department_id: task.department_id,
             sla_days: task.sla_days || 1,
-            due_at: task.due_at
+            due_at: task.due_at,
+            scheduled_for: task.scheduled_for
         };
 
         const { data, error } = await supabase
@@ -83,6 +85,7 @@ function mapToModel(row: any): IncidentTask {
         department_id: row.department_id,
         sla_days: row.sla_days,
         due_at: row.due_at,
+        scheduled_for: row.scheduled_for,
         assigned_to: row.assigned_to_email,
         evidence: row.evidence, // Reading is fine if API returns logic for it (or logs), but DB column missing means undefined
         created_at: row.created_at,

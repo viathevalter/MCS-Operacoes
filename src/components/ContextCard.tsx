@@ -65,7 +65,7 @@ export const ContextCard: React.FC<ContextCardProps> = ({ context, compact = fal
       <div className="flex flex-col gap-1">
         {/* Origem */}
         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded w-fit">
-          <Database size={10} /> {origin.ref || origin.label}
+          <Database size={10} /> {origin?.ref || origin?.label || 'S/ Origem'}
         </div>
         {/* Itens Principais (Limitado para não poluir a tabela) */}
         <div className="flex flex-wrap gap-2 text-[10px] text-slate-500 dark:text-slate-400">
@@ -97,10 +97,10 @@ export const ContextCard: React.FC<ContextCardProps> = ({ context, compact = fal
         <div className="flex items-center gap-2">
           <Database size={14} className="text-blue-600 dark:text-blue-500" />
           <span className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
-            Origem: {origin.label || origin.ref}
+            Origem: {origin?.label || origin?.ref || 'Desconhecida'}
           </span>
         </div>
-        {origin.sp_id && <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">ID: {origin.sp_id}</span>}
+        {origin?.sp_id && <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">ID: {origin.sp_id}</span>}
       </div>
 
       {/* Grid de Entidades */}

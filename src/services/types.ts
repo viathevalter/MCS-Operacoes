@@ -169,7 +169,8 @@ export interface IncidenciaTarefa {
   status: 'Pendente' | 'Em Andamento' | 'Concluida';
   ordem: number;
   departamento?: string; // RH, Ops, Safety
-  prazo?: string; // ISO Date
+  prazo?: string; // ISO Date (Deadline)
+  scheduled_for?: string; // ISO Date (Plano de Início/Agendado Para)
   evidencia?: string; // Texto ou Link
   responsavel_email?: string | null;
 

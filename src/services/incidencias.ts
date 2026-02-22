@@ -85,6 +85,7 @@ const toUiTarefa = async (task: any): Promise<IncidenciaTarefa> => {
         ordem: task.step_order,
         departamento: dept?.name || 'Geral',
         prazo: task.due_at,
+        scheduled_for: task.scheduled_for,
         evidencia: task.evidence,
         responsavel_email: task.assigned_to,
 
@@ -266,6 +267,7 @@ export const updateTarefa = async (id: number | string, patch: Partial<Incidenci
     const modelPatch: any = {};
     if (patch.status) modelPatch.status = patch.status; // Service maps to DB status
     if (patch.evidencia) modelPatch.evidence = patch.evidencia;
+    if (patch.scheduled_for !== undefined) modelPatch.scheduled_for = patch.scheduled_for;
 
     await incidentTaskService.update(String(id), modelPatch);
 };
@@ -285,6 +287,7 @@ export const createTarefa = async (payload: any): Promise<IncidenciaTarefa | nul
         step_order: payload.ordem || 99,
         status: 'Pendente',
         due_at: payload.prazo || new Date().toISOString(),
+        scheduled_for: payload.scheduled_for,
         sla_days: 1
     } as any);
 

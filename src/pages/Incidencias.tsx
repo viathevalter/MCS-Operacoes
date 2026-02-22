@@ -58,7 +58,8 @@ export const Incidencias: React.FC = () => {
         playbook_id: '',
         departamento: 'Operações', // Default for Quick Task
         sla: 1, // Default for Quick Task
-        slaUnit: 'days' as 'hours' | 'days'
+        slaUnit: 'days' as 'hours' | 'days',
+        scheduled_for: '' // Agendado Para (opcional)
     });
 
     // Mode A: Manual Selections
@@ -203,6 +204,7 @@ export const Incidencias: React.FC = () => {
                 context: finalContext,
                 // Quick Task Fields
                 departamento: isQuickTask ? baseForm.departamento : undefined,
+                scheduled_for: isQuickTask && baseForm.scheduled_for ? new Date(baseForm.scheduled_for).toISOString() : undefined,
                 sla: isQuickTask ? baseForm.sla : undefined,
                 prazo: isQuickTask
                     ? new Date(Date.now() + (baseForm.sla * (baseForm.slaUnit === 'hours' ? 3600000 : 86400000))).toISOString()
@@ -222,7 +224,7 @@ export const Incidencias: React.FC = () => {
     };
 
     const resetModal = () => {
-        setBaseForm({ titulo: '', descricao: '', impacto: 'Médio', tipo: 'Geral', playbook_id: '', departamento: 'Operações', sla: 1, slaUnit: 'days' });
+        setBaseForm({ titulo: '', descricao: '', impacto: 'Médio', tipo: 'Geral', playbook_id: '', departamento: 'Operações', sla: 1, slaUnit: 'days', scheduled_for: '' });
         setManualSel({ client: null, pedido: null, worker: null, obra: null });
         setOriginItem(null);
         setPreviewContext(null);
@@ -742,9 +744,9 @@ export const Incidencias: React.FC = () => {
                                             />
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                             <div>
-                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Departamento Responsável</label>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Departamento</label>
                                                 <select
                                                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
                                                     value={baseForm.departamento}
@@ -771,6 +773,15 @@ export const Incidencias: React.FC = () => {
                                                     <option value="Alto">Alto</option>
                                                     <option value="Crítico">Urgente / Crítico</option>
                                                 </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Agendado Para</label>
+                                                <input
+                                                    type="date"
+                                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
+                                                    value={baseForm.scheduled_for}
+                                                    onChange={(e) => setBaseForm({ ...baseForm, scheduled_for: e.target.value })}
+                                                />
                                             </div>
                                             <div>
                                                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Prazo (SLA)</label>

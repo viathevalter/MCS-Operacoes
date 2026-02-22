@@ -104,7 +104,8 @@ export interface IncidentTask {
   title: string;
   department_id: string;
   sla_days: number;
-  due_at: string; // ISO Date
+  due_at: string; // ISO Date (Deadline)
+  scheduled_for?: string; // ISO Date (Plano de Início/Agendado Para)
   status: 'Pendente' | 'Em Andamento' | 'Concluida';
   assigned_to?: string; // email
   evidence?: string;
