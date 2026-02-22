@@ -16,6 +16,7 @@ import { AsyncSelect } from '../components/ui/AsyncSelect';
 import { useAuth } from '../contexts/AuthContext';
 
 // --- MOCK AUTH REMOVED ---
+import { supabaseEmployeeService, Employee } from '../services/db/SupabaseEmployeeService';
 
 export const Incidencias: React.FC = () => {
     const navigate = useNavigate();
@@ -32,6 +33,7 @@ export const Incidencias: React.FC = () => {
     const [data, setData] = useState<Incidencia[]>([]);
     const [playbooks, setPlaybooks] = useState<Playbook[]>([]);
     const [departments, setDepartments] = useState<any[]>([]);
+    const [employees, setEmployees] = useState<Employee[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [impactoFilter, setImpactoFilter] = useState<string>('');
     const [searchTerm, setSearchTerm] = useState('');
@@ -59,7 +61,8 @@ export const Incidencias: React.FC = () => {
         departamento: 'Operações', // Default for Quick Task
         sla: 1, // Default for Quick Task
         slaUnit: 'days' as 'hours' | 'days',
-        scheduled_for: '' // Agendado Para (opcional)
+        scheduled_for: '', // Agendado Para (opcional)
+        responsavel_email: '' // Responsável pela tarefa
     });
 
     // Mode A: Manual Selections
@@ -98,6 +101,7 @@ export const Incidencias: React.FC = () => {
         loadData();
         getActivePlaybooks().then(setPlaybooks);
         listDepartments().then(setDepartments);
+        supabaseEmployeeService.list().then(setEmployees);
     }, [activeTab, statusFilter, impactoFilter]);
 
     // Handle Origin Item Selection
@@ -663,7 +667,7 @@ export const Incidencias: React.FC = () => {
                                                 />
                                             </div>
 
-                                            <div className="col-span-6 md:col-span-6">
+                                            <div className="col-span-12 md:col-span-4">
                                                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Impacto</label>
                                                 <select
                                                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
@@ -676,7 +680,7 @@ export const Incidencias: React.FC = () => {
                                                     <option value="Crítico">Crítico</option>
                                                 </select>
                                             </div>
-                                            <div className="col-span-6 md:col-span-6">
+                                            <div className="col-span-12 md:col-span-4">
                                                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Categoria (Tipo)</label>
                                                 <select
                                                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
@@ -689,6 +693,19 @@ export const Incidencias: React.FC = () => {
                                                     <option value="Qualidade">Qualidade</option>
                                                     <option value="Segurança">Segurança</option>
                                                     <option value="Reemplazo">Reemplazo</option>
+                                                </select>
+                                            </div>
+                                            <div className="col-span-12 md:col-span-4">
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Atribuir para (Opcional)</label>
+                                                <select
+                                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
+                                                    value={baseForm.responsavel_email}
+                                                    onChange={(e) => setBaseForm({ ...baseForm, responsavel_email: e.target.value })}
+                                                >
+                                                    <option value="">Não atribuir</option>
+                                                    {employees.filter(e => e.active && e.correoempresarial).map(emp => (
+                                                        <option key={emp.id} value={emp.correoempresarial}>{emp.nombrecompleto}</option>
+                                                    ))}
                                                 </select>
                                             </div>
                                         </div>
@@ -765,7 +782,7 @@ export const Incidencias: React.FC = () => {
                                             />
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                                             <div>
                                                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">{t('incidencias.modal_nova_tarefa.department')}</label>
                                                 <select
@@ -822,6 +839,19 @@ export const Incidencias: React.FC = () => {
                                                         <option value="days">{t('incidencias.modal_nova_tarefa.time_days')}</option>
                                                     </select>
                                                 </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Atribuir para (Opcional)</label>
+                                                <select
+                                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
+                                                    value={baseForm.responsavel_email}
+                                                    onChange={(e) => setBaseForm({ ...baseForm, responsavel_email: e.target.value })}
+                                                >
+                                                    <option value="">Não atribuir</option>
+                                                    {employees.filter(e => e.active && e.correoempresarial).map(emp => (
+                                                        <option key={emp.id} value={emp.correoempresarial}>{emp.nombrecompleto}</option>
+                                                    ))}
+                                                </select>
                                             </div>
                                         </div>
 

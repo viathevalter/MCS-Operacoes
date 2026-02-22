@@ -162,7 +162,10 @@ export const createIncidencia = async (payload: any): Promise<Incidencia | null>
             step_order: 1,
             status: 'Pendente', // Service maps to 'open'
             due_at: payload.prazo || new Date().toISOString(),
-            sla_days: payload.sla || 1
+            sla_days: payload.sla || 1,
+            scheduled_for: payload.scheduled_for,
+            assigned_to: payload.responsavel_email,
+            created_by: payload.created_by
         } as any);
     }
 
@@ -289,6 +292,7 @@ export const createTarefa = async (payload: any): Promise<IncidenciaTarefa | nul
         due_at: payload.prazo || new Date().toISOString(),
         scheduled_for: payload.scheduled_for,
         created_by: payload.created_by,
+        assigned_to: payload.responsavel_email,
         sla_days: 1
     } as any);
 
