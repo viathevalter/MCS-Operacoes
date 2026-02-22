@@ -30,7 +30,7 @@ export const Tasks: React.FC = () => {
     // Filters State
     const [activeTab, setActiveTab] = useState<'minhas' | 'setor' | 'todas'>('minhas');
     const [viewMode, setViewMode] = useState<'lista' | 'calendario'>('lista');
-    const [statusFilter, setStatusFilter] = useState<string>('Pendente');
+    const [statusFilter, setStatusFilter] = useState<string>('Ativas');
     const [searchTerm, setSearchTerm] = useState('');
     const [onlyOverdue, setOnlyOverdue] = useState(false);
 
@@ -131,7 +131,11 @@ export const Tasks: React.FC = () => {
                 if (t.departamento !== userDeptName) return false;
             }
             if (statusFilter && statusFilter !== 'Todos') {
-                if (t.status !== statusFilter) return false;
+                if (statusFilter === 'Ativas') {
+                    if (t.status === 'Concluida') return false;
+                } else if (t.status !== statusFilter) {
+                    return false;
+                }
             }
             if (searchTerm) {
                 const lower = searchTerm.toLowerCase();
@@ -253,6 +257,7 @@ export const Tasks: React.FC = () => {
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
                         <option value="Todos">{t('incidencias.filters.status_all')}</option>
+                        <option value="Ativas">Tarefas Ativas</option>
                         <option value="Pendente">{t('tasks.status.Pendente')}</option>
                         <option value="Em Andamento">{t('tasks.status.Em Andamento')}</option>
                         <option value="Concluida">{t('tasks.status.Concluida')}</option>
