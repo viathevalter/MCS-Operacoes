@@ -23,6 +23,7 @@ import type { Filters } from './services/types';
 import { authService } from './services/mock/auth.service';
 import { useLanguage } from './i18n';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { SidebarProvider, useSidebar } from './contexts/SidebarContext';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -60,11 +61,13 @@ const AppContent: React.FC = () => {
     }
   }, [user]);
 
+  const { isSidebarOpen } = useSidebar();
+
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
       <Sidebar />
       {/* Main Content Area - Full Fluid Width */}
-      <main className="flex-1 ml-72 flex flex-col h-screen overflow-hidden">
+      <main className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
         <Header />
         <div className="flex-1 overflow-y-auto scrollbar-hide p-4 md:p-6 lg:p-8">
           <Routes>
@@ -101,15 +104,17 @@ import { Toaster } from 'sonner';
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <Toaster richColors position="top-right" />
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/*" element={
-          <ProtectedRoute>
-            <AppContent />
-          </ProtectedRoute>
-        } />
-      </Routes>
+      <SidebarProvider>
+        <Toaster richColors position="top-right" />
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/*" element={
+            <ProtectedRoute>
+              <AppContent />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </SidebarProvider>
     </AuthProvider>
   );
 };
