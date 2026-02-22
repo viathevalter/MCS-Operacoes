@@ -233,7 +233,8 @@ export const Incidencias: React.FC = () => {
                 sla: isQuickTask ? baseForm.sla : undefined,
                 prazo: isQuickTask
                     ? new Date(Date.now() + (baseForm.sla * (baseForm.slaUnit === 'hours' ? 3600000 : 86400000))).toISOString()
-                    : undefined
+                    : undefined,
+                responsavel_email: baseForm.responsavel_email
             });
 
             setIsModalOpen(false);
