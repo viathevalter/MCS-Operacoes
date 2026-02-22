@@ -700,7 +700,15 @@ export const Incidencias: React.FC = () => {
                                                 <select
                                                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all text-slate-900 dark:text-slate-100"
                                                     value={baseForm.responsavel_email}
-                                                    onChange={(e) => setBaseForm({ ...baseForm, responsavel_email: e.target.value })}
+                                                    onChange={(e) => {
+                                                        const selectedEmail = e.target.value;
+                                                        const userDept = employees.find(emp => emp.correoempresarial === selectedEmail)?.departamento;
+                                                        setBaseForm({
+                                                            ...baseForm,
+                                                            responsavel_email: selectedEmail,
+                                                            departamento: userDept || baseForm.departamento
+                                                        });
+                                                    }}
                                                 >
                                                     <option value="">Não atribuir</option>
                                                     {employees.filter(e => e.active && e.correoempresarial).map(emp => (
@@ -845,7 +853,15 @@ export const Incidencias: React.FC = () => {
                                                 <select
                                                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900 focus:border-emerald-400 dark:focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100"
                                                     value={baseForm.responsavel_email}
-                                                    onChange={(e) => setBaseForm({ ...baseForm, responsavel_email: e.target.value })}
+                                                    onChange={(e) => {
+                                                        const selectedEmail = e.target.value;
+                                                        const userDept = employees.find(emp => emp.correoempresarial === selectedEmail)?.departamento;
+                                                        setBaseForm({
+                                                            ...baseForm,
+                                                            responsavel_email: selectedEmail,
+                                                            departamento: userDept || baseForm.departamento
+                                                        });
+                                                    }}
                                                 >
                                                     <option value="">Não atribuir</option>
                                                     {employees.filter(e => e.active && e.correoempresarial).map(emp => (
