@@ -22,13 +22,13 @@ import { ptBR } from 'date-fns/locale';
 interface CalendarViewProps {
     tasks: IncidenciaTarefaExpandida[];
     onTaskClick: (task: IncidenciaTarefaExpandida) => void;
-    onEditClick?: (task: IncidenciaTarefaExpandida) => void;
-    onDeleteClick?: (task: IncidenciaTarefaExpandida) => void;
     currentUserId?: string;
-    isAdmin?: boolean; // Added isAdmin prop
+    onAssignMe?: (taskId: string) => void;
+    onEditClick: (task: IncidenciaTarefaExpandida) => void;
+    onDeleteClick: (task: IncidenciaTarefaExpandida) => void;
 }
 
-export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onTaskClick, onEditClick, onDeleteClick, currentUserId, isAdmin }) => {
+export function CalendarView({ tasks, onTaskClick, currentUserId, onAssignMe, onEditClick, onDeleteClick }: CalendarViewProps) {
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
@@ -184,24 +184,28 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onTaskClick, 
                                                         <div className="text-[9px] opacity-80 truncate">{task.departamento}</div>
                                                     )}
                                                 </div>
-                                                {(currentUserId === task.created_by || isAdmin) && (
-                                                    <div className="flex gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity ml-1">
-                                                        {onEditClick && (
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); onEditClick(task); }}
-                                                                className="text-blue-600 hover:text-blue-800 p-0.5"
-                                                                title="Editar Tarefa">
-                                                                <Edit size={12} />
-                                                            </button>
-                                                        )}
-                                                        {onDeleteClick && (
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); onDeleteClick(task); }}
-                                                                className="text-red-500 hover:text-red-700 p-0.5"
-                                                                title="Excluir Tarefa">
-                                                                <Trash2 size={12} />
-                                                            </button>
-                                                        )}
+                                                {currentUserId === task.created_by && (
+                                                    <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                onEditClick(task);
+                                                            }}
+                                                            className="p-1 text-slate-400 hover:text-blue-500 hover:bg-white rounded"
+                                                            title="Editar"
+                                                        >
+                                                            <Edit size={12} />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                onDeleteClick(task);
+                                                            }}
+                                                            className="p-1 text-slate-400 hover:text-red-500 hover:bg-white rounded"
+                                                            title="Excluir"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                        </button>
                                                     </div>
                                                 )}
                                             </div>

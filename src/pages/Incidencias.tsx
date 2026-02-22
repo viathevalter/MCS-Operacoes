@@ -492,7 +492,7 @@ export const Incidencias: React.FC = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-right flex items-center justify-end h-full gap-2">
-                                                    {(user?.id === row.criado_por_nome || user?.isAdmin) && (
+                                                    {user?.id === row.criado_por_nome && (
                                                         <button
                                                             onClick={(e) => handleDeleteIncidencia(e, row.id)}
                                                             className="text-slate-300 hover:text-red-500 transition-colors p-1"

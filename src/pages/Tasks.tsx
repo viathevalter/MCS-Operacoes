@@ -472,7 +472,6 @@ export const Tasks: React.FC = () => {
                         setIsEditModalOpen(true);
                     }}
                     onDeleteClick={(task) => handleDeleteTask(task.id)}
-                    isAdmin={user?.isAdmin}
                 />
             )}
 
