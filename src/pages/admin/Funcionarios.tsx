@@ -61,6 +61,8 @@ export const Funcionarios: React.FC = () => {
     const [companies, setCompanies] = useState<Company[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterDepartment, setFilterDepartment] = useState('');
+    const [filterCompany, setFilterCompany] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<FormData>(initialFormState);
@@ -170,12 +172,17 @@ export const Funcionarios: React.FC = () => {
         }
     };
 
-    const filteredEmployees = employees.filter(employee =>
-        employee.nombrecompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (employee.department_name && employee.department_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (employee.empresa_contratante_nome && employee.empresa_contratante_nome.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (employee.usuario && employee.usuario.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const filteredEmployees = employees.filter(employee => {
+        const matchesSearch = employee.nombrecompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (employee.department_name && employee.department_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (employee.empresa_contratante_nome && employee.empresa_contratante_nome.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (employee.usuario && employee.usuario.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        const matchesDepartment = filterDepartment ? employee.department_id === filterDepartment : true;
+        const matchesCompany = filterCompany ? employee.empresa_contratante_id?.toString() === filterCompany : true;
+
+        return matchesSearch && matchesDepartment && matchesCompany;
+    });
 
     const getStatusColor = (status?: string) => {
         switch (status) {
@@ -207,8 +214,8 @@ export const Funcionarios: React.FC = () => {
                 </button>
             </div>
 
-            {/* Search Bar */}
-            <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+            {/* Search and Filters */}
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     <input
@@ -216,8 +223,36 @@ export const Funcionarios: React.FC = () => {
                         placeholder="Buscar por nome, departamento, empresa ou usuário..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100"
                     />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <select
+                        value={filterDepartment}
+                        onChange={(e) => setFilterDepartment(e.target.value)}
+                        className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-slate-300"
+                    >
+                        <option value="">Todos os Departamentos</option>
+                        {departments.map(dept => (
+                            <option key={dept.id} value={dept.id}>
+                                {dept.name}
+                            </option>
+                        ))}
+                    </select>
+
+                    <select
+                        value={filterCompany}
+                        onChange={(e) => setFilterCompany(e.target.value)}
+                        className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-slate-300"
+                    >
+                        <option value="">Todas as Empresas Contratantes</option>
+                        {companies.map(company => (
+                            <option key={company.id} value={company.id}>
+                                {company.nome_pbi}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             </div>
 
