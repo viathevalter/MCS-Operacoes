@@ -6,9 +6,10 @@ import { Edit, Save, Trash2, UserPlus, X, Search, Filter } from 'lucide-react';
 interface MCSUser {
     id: string;
     email: string;
-    role: 'admin' | 'user' | 'manager';
+    role: 'admin' | 'user' | 'manager' | 'super_admin';
     display_name: string;
     department_id?: string;
+    managed_departments?: string[];
 }
 
 interface DepartmentMember {
@@ -75,7 +76,8 @@ export const UserManagement: React.FC = () => {
         setFormData({
             role: u.role,
             display_name: u.display_name,
-            employee_id: linkedEmp?.id || ''
+            employee_id: linkedEmp?.id || '',
+            managed_departments: u.managed_departments || []
         });
     };
 
@@ -86,11 +88,21 @@ export const UserManagement: React.FC = () => {
                 .from('mcs_users')
                 .update({
                     role: formData.role,
-                    display_name: formData.display_name
+                    display_name: formData.display_name,
+                    managed_departments: formData.role === 'admin' ? formData.managed_departments : []
                 })
                 .eq('id', userId);
 
             if (userError) throw userError;
+
+            // Also update profiles
+            await supabase
+                .from('profiles')
+                .update({
+                    role: formData.role,
+                    managed_departments: formData.role === 'admin' ? formData.managed_departments : []
+                })
+                .eq('id', userId);
 
             // 2. Update Employee Link
             // First unlink any employee currently linked to this user (if changing)
@@ -133,6 +145,8 @@ export const UserManagement: React.FC = () => {
         return <div className="p-8">Acesso Negado. Apenas administradores.</div>;
     }
 
+    const uniqueDepartments = Array.from(new Set(employees.map(e => e.mcs_departments?.name).filter(Boolean))).sort();
+
     return (
         <div className="p-6 max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
@@ -172,7 +186,7 @@ export const UserManagement: React.FC = () => {
                         onChange={(e) => setFilterDepartment(e.target.value)}
                     >
                         <option value="">Todos os Departamentos</option>
-                        {Array.from(new Set(employees.map(e => e.mcs_departments?.name).filter(Boolean))).sort().map(dept => (
+                        {uniqueDepartments.map(dept => (
                             <option key={dept} value={dept}>{dept}</option>
                         ))}
                     </select>
@@ -225,22 +239,73 @@ export const UserManagement: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         {isEditing ? (
-                                            <select
-                                                className="border rounded px-2 py-1 dark:bg-slate-800 dark:border-slate-600"
-                                                value={formData.role}
-                                                onChange={e => setFormData({ ...formData, role: e.target.value as any })}
-                                            >
-                                                <option value="user">Usuário</option>
-                                                <option value="manager">Gerente</option>
-                                                <option value="admin">Admin</option>
-                                            </select>
+                                            <div className="flex flex-col gap-2">
+                                                <select
+                                                    className="border rounded px-2 py-1 dark:bg-slate-800 dark:border-slate-600"
+                                                    value={formData.role}
+                                                    onChange={e => setFormData({ ...formData, role: e.target.value as any })}
+                                                >
+                                                    <option value="user">Usuário</option>
+                                                    <option value="manager">Gerente</option>
+                                                    <option value="admin">Admin</option>
+                                                    <option value="super_admin">Super Admin</option>
+                                                </select>
+                                                {formData.role === 'admin' && (
+                                                    <div className="mt-2 space-y-1 bg-slate-50 dark:bg-slate-900 p-2 rounded border dark:border-slate-700">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <div className="text-xs font-semibold text-slate-500">Dptos Gerenciados:</div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    const allSelected = formData.managed_departments?.length === uniqueDepartments.length;
+                                                                    setFormData({
+                                                                        ...formData,
+                                                                        managed_departments: allSelected ? [] : [...uniqueDepartments] as string[]
+                                                                    });
+                                                                }}
+                                                                className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                                                            >
+                                                                {formData.managed_departments?.length === uniqueDepartments.length ? 'Limpar Todos' : 'Selecionar Todos'}
+                                                            </button>
+                                                        </div>
+                                                        <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
+                                                            {uniqueDepartments.map(dept => (
+                                                                <label key={dept} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={formData.managed_departments?.includes(dept as string)}
+                                                                        onChange={(e) => {
+                                                                            const current = formData.managed_departments || [];
+                                                                            if (e.target.checked) {
+                                                                                setFormData({ ...formData, managed_departments: [...current, dept as string] });
+                                                                            } else {
+                                                                                setFormData({ ...formData, managed_departments: current.filter(d => d !== dept) });
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    {dept}
+                                                                </label>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         ) : (
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                                ${u.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
-                                                    u.role === 'manager' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
-                                                        'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300'}`}>
-                                                {u.role.toUpperCase()}
-                                            </span>
+                                            <div>
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                                    ${u.role === 'super_admin' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300' :
+                                                        u.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
+                                                            u.role === 'manager' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
+                                                                'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300'}`}>
+                                                    {u.role.toUpperCase()}
+                                                </span>
+                                                {u.role === 'admin' && u.managed_departments && u.managed_departments.length > 0 && (
+                                                    <div className="text-xs text-slate-500 mt-1">
+                                                        {u.managed_departments.join(', ')}
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-slate-600 dark:text-slate-300">

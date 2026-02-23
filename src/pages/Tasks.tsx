@@ -135,12 +135,25 @@ export const Tasks: React.FC = () => {
 
     const filteredData = useMemo(() => {
         return allTasks.filter(t => {
+            // --- ADMIN / SUPER ADMIN DATA ISOLATION ---
+            if (currentUser && !currentUser.isSuperAdmin && currentUser.isAdmin) {
+                const managed = currentUser.profile?.managed_departments || [];
+                const isMine = t.responsavel_email === currentUser.email;
+                const isManaged = managed.includes(t.departamento);
+
+                if (!isMine && !isManaged) {
+                    return false;
+                }
+            }
+
             if (activeTab === 'minhas') {
                 if (t.responsavel_email !== currentUser.email) return false;
             } else if (activeTab === 'setor') {
                 const userDeptName = currentUser.profile?.department_id || '';
                 if (t.departamento !== userDeptName) return false;
             }
+            // 'todas' shows everything that passes the isolation check above
+
             if (statusFilter && statusFilter !== 'Todos') {
                 if (statusFilter === 'Ativas') {
                     if (t.status === 'Concluida') return false;
@@ -170,7 +183,7 @@ export const Tasks: React.FC = () => {
             }
             return true;
         });
-    }, [allTasks, activeTab, statusFilter, searchTerm, onlyOverdue, currentUser.email, assigneeFilter]);
+    }, [allTasks, activeTab, statusFilter, searchTerm, onlyOverdue, currentUser, assigneeFilter]);
 
     const myTasks = allTasks.filter(t => t.responsavel_email === currentUser.email && t.status !== 'Concluida');
     const myPendingCount = myTasks.length;
@@ -240,7 +253,7 @@ export const Tasks: React.FC = () => {
                         >
                             <Briefcase size={16} /> {t('tasks.tabs.setor')}
                         </button>
-                        {user?.profile?.role === 'admin' && (
+                        {(currentUser?.isAdmin || currentUser?.isSuperAdmin) && (
                             <button
                                 onClick={() => setActiveTab('todas')}
                                 className={`pb-4 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-2 ${activeTab === 'todas'

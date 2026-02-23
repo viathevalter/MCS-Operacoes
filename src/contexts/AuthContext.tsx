@@ -5,13 +5,15 @@ import type { User as AuthUser, Session } from '@supabase/supabase-js';
 // Extend the user type to include our profile data
 export interface User extends AuthUser {
     profile?: {
-        role: 'admin' | 'user' | 'manager';
+        role: 'admin' | 'user' | 'manager' | 'super_admin';
         department_id?: string;
         full_name?: string;
         avatar_url?: string;
+        managed_departments?: string[];
     };
     // Helper to check roles
     isAdmin: boolean;
+    isSuperAdmin: boolean;
 }
 
 interface AuthContextType {
@@ -72,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Updated to use public.profiles table
             const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('role, department, full_name, email')
+                .select('role, department, full_name, email, managed_departments')
                 .eq('id', authUser.id)
                 .single();
 
@@ -86,12 +88,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const fullUser: User = {
                 ...authUser,
                 profile: profile ? {
-                    role: profile.role as 'admin' | 'user' | 'manager',
+                    role: profile.role as 'admin' | 'user' | 'manager' | 'super_admin',
                     department_id: profile.department, // Using Name as ID for now since app uses names mostly
                     full_name: profile.full_name,
+                    managed_departments: profile.managed_departments || [],
                     // avatar_url is not in mcs_users yet, so undefined
                 } : { role: 'user' },
-                isAdmin: profile?.role === 'admin',
+                isAdmin: profile?.role === 'admin' || profile?.role === 'super_admin',
+                isSuperAdmin: profile?.role === 'super_admin',
             };
 
             console.log('AuthContext: Setting user:', fullUser);
@@ -99,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (err) {
             console.error('AuthContext: Unexpected error fetching profile:', err);
             // Fallback
-            setUser({ ...authUser, isAdmin: false });
+            setUser({ ...authUser, isAdmin: false, isSuperAdmin: false });
         } finally {
             setLoading(false);
         }

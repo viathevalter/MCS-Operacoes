@@ -86,7 +86,23 @@ export const Incidencias: React.FC = () => {
                 const filters: any = {};
                 if (statusFilter) filters.status = statusFilter;
                 if (impactoFilter) filters.prioridade = impactoFilter;
-                const res = await listIncidencias(filters);
+                let res = await listIncidencias(filters);
+
+                // --- ADMIN DATA ISOLATION ---
+                if (user && !user.isSuperAdmin && user.isAdmin) {
+                    const managed = user.profile?.managed_departments || [];
+                    res = res.filter(inc => {
+                        // Allow if admin created the incident
+                        if (inc.criado_por_nome === user.email) return true;
+
+                        // Check if the incident involves any managed department
+                        const involved = inc.departamentos_envolvidos || [];
+                        if (involved.length === 0) return false;
+
+                        return involved.some(d => managed.includes(d));
+                    });
+                }
+
                 setData(res);
             }
         } catch (error) {
@@ -101,7 +117,7 @@ export const Incidencias: React.FC = () => {
         getActivePlaybooks().then(setPlaybooks);
         listDepartments().then(setDepartments);
         supabaseEmployeeService.list().then(setEmployees);
-    }, [activeTab, statusFilter, impactoFilter]);
+    }, [activeTab, statusFilter, impactoFilter, user]);
 
     // Handle Origin Item Selection
     const handleOriginSelect = async (item: any) => {
