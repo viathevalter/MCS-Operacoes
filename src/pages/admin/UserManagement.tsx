@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
-import { Edit, Save, Trash2, UserPlus, X } from 'lucide-react';
+import { Edit, Save, Trash2, UserPlus, X, Search, Filter } from 'lucide-react';
 
 interface MCSUser {
     id: string;
@@ -16,6 +16,7 @@ interface DepartmentMember {
     nombrecompleto: string;
     usuario: string;
     user_id?: string; // Linked auth id
+    mcs_departments?: { name: string } | null;
 }
 
 export const UserManagement: React.FC = () => {
@@ -25,6 +26,8 @@ export const UserManagement: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [editingUser, setEditingUser] = useState<string | null>(null);
     const [formData, setFormData] = useState<Partial<MCSUser> & { employee_id?: string }>({});
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterDepartment, setFilterDepartment] = useState('');
 
     useEffect(() => {
         fetchData();
@@ -44,7 +47,13 @@ export const UserManagement: React.FC = () => {
             // Fetch Employees for linking
             const { data: empData, error: empError } = await supabase
                 .from('mcs_department_members')
-                .select('id, nombrecompleto, usuario, user_id')
+                .select(`
+                    id, 
+                    nombrecompleto, 
+                    usuario, 
+                    user_id,
+                    mcs_departments ( name )
+                `)
                 .eq('active', true)
                 .order('nombrecompleto');
 
@@ -138,6 +147,38 @@ export const UserManagement: React.FC = () => {
                 </button>
             </div>
 
+            {/* Filters */}
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-6 flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Search className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Buscar por nome ou email..."
+                        className="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+
+                <div className="relative w-full sm:w-64">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Filter className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <select
+                        className="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+                        value={filterDepartment}
+                        onChange={(e) => setFilterDepartment(e.target.value)}
+                    >
+                        <option value="">Todos os Departamentos</option>
+                        {Array.from(new Set(employees.map(e => e.mcs_departments?.name).filter(Boolean))).sort().map(dept => (
+                            <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <table className="w-full text-left text-sm">
                     <thead className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
@@ -146,11 +187,23 @@ export const UserManagement: React.FC = () => {
                             <th className="px-6 py-4 font-semibold text-slate-600 dark:text-slate-300">Nome de Exibição</th>
                             <th className="px-6 py-4 font-semibold text-slate-600 dark:text-slate-300">Permissão</th>
                             <th className="px-6 py-4 font-semibold text-slate-600 dark:text-slate-300">Funcionário Vinculado</th>
+                            <th className="px-6 py-4 font-semibold text-slate-600 dark:text-slate-300">Departamento</th>
                             <th className="px-6 py-4 text-right font-semibold text-slate-600 dark:text-slate-300">Ações</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                        {users.map(u => {
+                        {users.filter(u => {
+                            const linkedEmp = employees.find(e => e.user_id === u.id);
+                            const searchLower = searchTerm.toLowerCase();
+                            const matchesSearch =
+                                (u.display_name?.toLowerCase().includes(searchLower) ?? false) ||
+                                u.email.toLowerCase().includes(searchLower) ||
+                                (linkedEmp?.nombrecompleto.toLowerCase().includes(searchLower) ?? false);
+
+                            const matchesDept = filterDepartment ? linkedEmp?.mcs_departments?.name === filterDepartment : true;
+
+                            return matchesSearch && matchesDept;
+                        }).map(u => {
                             const isEditing = editingUser === u.id;
                             const linkedEmp = employees.find(e => e.user_id === u.id);
 
@@ -212,6 +265,13 @@ export const UserManagement: React.FC = () => {
                                             ) : (
                                                 <span className="text-slate-400 italic">Não vinculado</span>
                                             )
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
+                                        {linkedEmp ? (
+                                            <span className="text-sm">{linkedEmp.mcs_departments?.name || '-'}</span>
+                                        ) : (
+                                            <span className="text-slate-400 italic">-</span>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
