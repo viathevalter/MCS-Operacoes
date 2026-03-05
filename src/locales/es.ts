@@ -10,9 +10,13 @@ export const es = {
     admin: 'Administración',
     playbooks: 'Playbooks',
     tarefas_modelo: 'Tareas Modelo',
+    departamentos: 'Departamentos',
+    funcionarios: 'Empleados',
     main_menu: 'Menú Principal',
     daily_mgmt: 'Gestión Diaria',
-    version: 'v2.5.0 (Operaciones)'
+    version: 'v2.5.0 (Operaciones)',
+    app_name: 'MCS Operaciones',
+    app_subtitle: 'Mastercorp Suite'
   },
   dashboard: {
     title: 'Tablero Directivo',
@@ -153,6 +157,98 @@ export const es = {
     atrasado: 'RETRASADO',
     vencida_ha: 'Vencida hace {{days}} días',
     assigned_to: 'Asignado a'
+  },
+  funcionarios: {
+    title: 'Empleados',
+    subtitle: 'Administrar el registro de colaboradores',
+    btn_new: 'Nuevo Empleado',
+    filters: {
+      search_placeholder: 'Buscar por nombre, departamento, empresa o usuario...',
+      all_departments: 'Todos los Departamentos',
+      all_companies: 'Todas las Empresas Contratantes'
+    },
+    table: {
+      name: 'Nombre / Usuario',
+      department: 'Departamento',
+      company: 'Empresa (Contratante)',
+      status: 'Estado',
+      actions: 'Acciones'
+    },
+    status: {
+      Ativo: 'Activo',
+      Inativo: 'Inactivo',
+      Desligado: 'Desvinculado',
+      Indefinido: 'Indefinido'
+    },
+    empty_search: 'No se encontró ningún empleado.',
+    modal: {
+      title_new: 'Nuevo Empleado',
+      title_edit: 'Editar Empleado',
+      personal_info: 'Información Personal',
+      full_name: 'Nombre Completo *',
+      birth_date: 'Fecha de Nacimiento',
+      contact: 'Contacto',
+      email: 'Email Empresarial',
+      phone: 'Teléfono Directo',
+      extension: 'Extensión',
+      contract_data: 'Datos Contractuales',
+      department: 'Departamento *',
+      select_department: 'Seleccione un departamento',
+      responsibility_code: 'Código de Responsabilidad',
+      hiring_company: 'Empresa Contratante',
+      select_company: 'Seleccione la empresa...',
+      service_company: 'Empresa de Servicios',
+      workplace: 'Lugar de Trabajo',
+      start_date: 'Fecha de Inicio',
+      iban: 'IBAN',
+      system_user: 'Usuario (Sistema)',
+      btn_cancel: 'Cancelar',
+      btn_save: 'Guardar Cambios',
+      btn_create: 'Crear Empleado'
+    },
+    messages: {
+      error_loading: 'Error al cargar los datos. Por favor, inténtelo de nuevo.',
+      error_mandatory: 'Nombre completo y Departamento son obligatorios.',
+      error_update: 'Error al actualizar empleado.',
+      error_create: 'Error al crear empleado.',
+      error_save: 'Ocurrió un error al guardar.',
+      confirm_delete: '¿Está seguro de que desea eliminar este empleado?',
+      error_delete: 'Error al eliminar empleado.'
+    }
+  },
+  operacao: {
+    title: 'Operación: Reemplazos & Reubicaciones',
+    filters: {
+      search: 'Buscar cliente o código...',
+      type_all: 'Todos',
+      type_reemplazo: 'Reemplazo',
+      type_reubicacion: 'Reubicacion'
+    },
+    table: {
+      recent_events: 'Eventos Recientes ({{count}})',
+      operation: 'Operación',
+      client: 'Cliente',
+      type: 'Tipo',
+      date: 'Fecha',
+      qty_people: 'Cant. Personas'
+    },
+    drawer: {
+      details: 'Detalles de la {{type}}',
+      close: 'Cerrar',
+      summary_client: 'Cliente',
+      summary_date: 'Fecha Inicio',
+      summary_status: 'Estado',
+      summary_reason: 'Motivo',
+      movement_title: 'Movimiento de Personal',
+      collab: 'Colaborador',
+      role: 'Función',
+      movement: 'Movimiento',
+      empty_movement: 'Ningún movimiento registrado.',
+      profiles_title: 'Perfiles Solicitados',
+      profile: 'Perfil',
+      qty: 'Cant',
+      empty_profiles: 'Ningún artículo solicitado.'
+    }
   },
   common: {
     loading: 'Cargando...',

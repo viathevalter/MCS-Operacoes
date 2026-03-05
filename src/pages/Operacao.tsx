@@ -4,6 +4,7 @@ import { KpiCard } from '../components/KpiCard';
 import type { EventoOperacional, Filters, KpiData } from '../services/types';
 import { AlertTriangle, Repeat, Briefcase, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { FilterBar } from '../components/FilterBar';
+import { useLanguage } from '../i18n';
 
 interface OperacaoProps {
     filters: Filters;
@@ -11,6 +12,7 @@ interface OperacaoProps {
 }
 
 export const Operacao: React.FC<OperacaoProps> = ({ filters, setFilters }) => {
+    const { t } = useLanguage();
     const [data, setData] = useState<{ kpis: KpiData[], eventos: EventoOperacional[] }>({ kpis: [], eventos: [] });
     const [selectedEvento, setSelectedEvento] = useState<EventoOperacional | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -81,13 +83,13 @@ export const Operacao: React.FC<OperacaoProps> = ({ filters, setFilters }) => {
             <FilterBar filters={filters} setFilters={setFilters} />
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 transition-colors">Operação: Reemplazos & Reubicaciones</h2>
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 transition-colors">{t('operacao.title')}</h2>
 
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                     <div className="relative">
                         <input
                             type="text"
-                            placeholder="Buscar cliente ou código..."
+                            placeholder={t('operacao.filters.search')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full sm:w-64 pl-4 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
@@ -118,7 +120,7 @@ export const Operacao: React.FC<OperacaoProps> = ({ filters, setFilters }) => {
 
             <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm overflow-hidden border border-slate-200 dark:border-slate-800 transition-colors flex flex-col h-[calc(100vh-200px)]">
                 <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
-                    <h3 className="font-semibold text-slate-800 dark:text-slate-100">Eventos Recentes ({filteredEventos.length})</h3>
+                    <h3 className="font-semibold text-slate-800 dark:text-slate-100">{t('operacao.table.recent_events', { count: filteredEventos.length })}</h3>
                 </div>
                 <div className="overflow-auto flex-grow">
                     <table className="w-full text-left text-sm relative">
@@ -129,7 +131,7 @@ export const Operacao: React.FC<OperacaoProps> = ({ filters, setFilters }) => {
                                     onClick={() => handleSort('codigo')}
                                 >
                                     <div className="flex items-center">
-                                        Operação
+                                        {t('operacao.table.operation')}
                                         {getSortIcon('codigo')}
                                     </div>
                                 </th>
@@ -138,21 +140,21 @@ export const Operacao: React.FC<OperacaoProps> = ({ filters, setFilters }) => {
                                     onClick={() => handleSort('cliente')}
                                 >
                                     <div className="flex items-center">
-                                        Cliente
+                                        {t('operacao.table.client')}
                                         {getSortIcon('cliente')}
                                     </div>
                                 </th>
-                                <th className="px-6 py-3 font-medium">Tipo</th>
+                                <th className="px-6 py-3 font-medium">{t('operacao.table.type')}</th>
                                 <th
                                     className="px-6 py-3 font-medium cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 transition-colors select-none group"
                                     onClick={() => handleSort('data')}
                                 >
                                     <div className="flex items-center">
-                                        Data
+                                        {t('operacao.table.date')}
                                         {getSortIcon('data')}
                                     </div>
                                 </th>
-                                <th className="px-6 py-3 font-medium text-right">Qtd. Pessoas</th>
+                                <th className="px-6 py-3 font-medium text-right">{t('operacao.table.qty_people')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -195,12 +197,12 @@ export const Operacao: React.FC<OperacaoProps> = ({ filters, setFilters }) => {
                             <div>
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                                     {selectedEvento.tipo === 'Reemplazo' ? <AlertTriangle className="text-red-500" /> : <Repeat className="text-amber-500" />}
-                                    Detalhes da {selectedEvento.tipo}
+                                    {t('operacao.drawer.details', { type: selectedEvento.tipo })}
                                 </h3>
                                 <p className="text-slate-500 text-sm mt-1">ID: #{selectedEvento.id}</p>
                             </div>
                             <button onClick={() => setSelectedEvento(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                                Fechar
+                                {t('operacao.drawer.close')}
                             </button>
                         </div>
 
@@ -209,19 +211,19 @@ export const Operacao: React.FC<OperacaoProps> = ({ filters, setFilters }) => {
                             {/* Summary Card */}
                             <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs uppercase text-slate-500 mb-1 block">Cliente</label>
+                                    <label className="text-xs uppercase text-slate-500 mb-1 block">{t('operacao.drawer.summary_client')}</label>
                                     <p className="font-semibold text-slate-800 dark:text-slate-200">{selectedEvento.cliente}</p>
                                 </div>
                                 <div>
-                                    <label className="text-xs uppercase text-slate-500 mb-1 block">Data Início</label>
+                                    <label className="text-xs uppercase text-slate-500 mb-1 block">{t('operacao.drawer.summary_date')}</label>
                                     <p className="font-semibold text-slate-800 dark:text-slate-200">{selectedEvento.data}</p>
                                 </div>
                                 <div>
-                                    <label className="text-xs uppercase text-slate-500 mb-1 block">Status</label>
+                                    <label className="text-xs uppercase text-slate-500 mb-1 block">{t('operacao.drawer.summary_status')}</label>
                                     <p className="font-semibold text-slate-800 dark:text-slate-200">{selectedEvento.status}</p>
                                 </div>
                                 <div>
-                                    <label className="text-xs uppercase text-slate-500 mb-1 block">Motivo</label>
+                                    <label className="text-xs uppercase text-slate-500 mb-1 block">{t('operacao.drawer.summary_reason')}</label>
                                     <p className="font-semibold text-slate-800 dark:text-slate-200">{selectedEvento.motivo}</p>
                                 </div>
                             </div>
@@ -230,15 +232,15 @@ export const Operacao: React.FC<OperacaoProps> = ({ filters, setFilters }) => {
                             <div>
                                 <h4 className="font-semibold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
                                     <Repeat size={18} className="text-blue-500" />
-                                    Movimentação de Pessoal
+                                    {t('operacao.drawer.movement_title')}
                                 </h4>
                                 <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
                                     <table className="w-full text-sm">
                                         <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500">
                                             <tr>
-                                                <th className="px-4 py-2 text-left">Colaborador</th>
-                                                <th className="px-4 py-2 text-left">Função</th>
-                                                <th className="px-4 py-2 text-right">Movimento</th>
+                                                <th className="px-4 py-2 text-left">{t('operacao.drawer.collab')}</th>
+                                                <th className="px-4 py-2 text-left">{t('operacao.drawer.role')}</th>
+                                                <th className="px-4 py-2 text-right">{t('operacao.drawer.movement')}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -257,7 +259,7 @@ export const Operacao: React.FC<OperacaoProps> = ({ filters, setFilters }) => {
                                                 </tr>
                                             ))}
                                             {(!selectedEvento.colaboradores || selectedEvento.colaboradores.length === 0) && (
-                                                <tr><td colSpan={3} className="px-4 py-3 text-center text-slate-400">Nenhuma movimentação registrada.</td></tr>
+                                                <tr><td colSpan={3} className="px-4 py-3 text-center text-slate-400">{t('operacao.drawer.empty_movement')}</td></tr>
                                             )}
                                         </tbody>
                                     </table>
@@ -268,14 +270,14 @@ export const Operacao: React.FC<OperacaoProps> = ({ filters, setFilters }) => {
                             <div>
                                 <h4 className="font-semibold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
                                     <Briefcase size={18} className="text-purple-500" />
-                                    Perfis Solicitados
+                                    {t('operacao.drawer.profiles_title')}
                                 </h4>
                                 <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
                                     <table className="w-full text-sm">
                                         <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500">
                                             <tr>
-                                                <th className="px-4 py-2 text-left">Perfil</th>
-                                                <th className="px-4 py-2 text-right">Qtd</th>
+                                                <th className="px-4 py-2 text-left">{t('operacao.drawer.profile')}</th>
+                                                <th className="px-4 py-2 text-right">{t('operacao.drawer.qty')}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -286,7 +288,7 @@ export const Operacao: React.FC<OperacaoProps> = ({ filters, setFilters }) => {
                                                 </tr>
                                             ))}
                                             {(!selectedEvento.itens || selectedEvento.itens.length === 0) && (
-                                                <tr><td colSpan={2} className="px-4 py-3 text-center text-slate-400">Nenhum item solicitado.</td></tr>
+                                                <tr><td colSpan={2} className="px-4 py-3 text-center text-slate-400">{t('operacao.drawer.empty_profiles')}</td></tr>
                                             )}
                                         </tbody>
                                     </table>

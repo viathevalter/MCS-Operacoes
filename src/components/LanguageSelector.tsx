@@ -8,7 +8,7 @@ export const LanguageSelector: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const languages = [
-    { code: 'pt', label: 'Português', flag: '🇵🇹' },
+    { code: 'pt', label: 'Português', flag: '🇧🇷' },
     { code: 'es', label: 'Español', flag: '🇪🇸' }
   ];
 
@@ -42,23 +42,22 @@ export const LanguageSelector: React.FC = () => {
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl border border-slate-200 z-50 animate-fade-in origin-top-right overflow-hidden">
-           <div className="py-1">
-             {languages.map((lang) => (
-               <button
-                 key={lang.code}
-                 onClick={() => handleSelect(lang.code)}
-                 className={`w-full text-left px-4 py-2.5 text-sm flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                   language === lang.code ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700'
-                 }`}
-               >
-                 <div className="flex items-center gap-2">
-                   <span className="text-base">{lang.flag}</span>
-                   <span>{lang.label}</span>
-                 </div>
-                 {language === lang.code && <Check size={14} className="text-blue-600" />}
-               </button>
-             ))}
-           </div>
+          <div className="py-1">
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => handleSelect(lang.code)}
+                className={`w-full text-left px-4 py-2.5 text-sm flex items-center justify-between hover:bg-slate-50 transition-colors ${language === lang.code ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700'
+                  }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-base">{lang.flag}</span>
+                  <span>{lang.label}</span>
+                </div>
+                {language === lang.code && <Check size={14} className="text-blue-600" />}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

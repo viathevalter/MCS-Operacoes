@@ -20,6 +20,7 @@ import { supabaseEmployeeService, Employee } from '../../services/db/SupabaseEmp
 import { supabaseDepartmentService } from '../../services/db/SupabaseDepartmentService';
 import { supabaseCompanyService, Company } from '../../services/db/SupabaseCompanyService';
 import type { Department } from '../../types/models';
+import { useLanguage } from '../../i18n';
 
 interface FormData {
     department_id: string;
@@ -56,6 +57,7 @@ const initialFormState: FormData = {
 };
 
 export const Funcionarios: React.FC = () => {
+    const { t } = useLanguage();
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [companies, setCompanies] = useState<Company[]>([]);
@@ -86,7 +88,7 @@ export const Funcionarios: React.FC = () => {
             setCompanies(companiesData);
         } catch (err) {
             console.error('Error loading data:', err);
-            setError('Erro ao carregar dados. Por favor, tente novamente.');
+            setError(t('funcionarios.messages.error_loading'));
         } finally {
             setLoading(false);
         }
@@ -122,7 +124,7 @@ export const Funcionarios: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.nombrecompleto || !formData.department_id) {
-            setError('Nome completo e Departamento são obrigatórios.');
+            setError(t('funcionarios.messages.error_mandatory'));
             return;
         }
 
@@ -143,7 +145,7 @@ export const Funcionarios: React.FC = () => {
                     await loadData();
                     setIsModalOpen(false);
                 } else {
-                    setError('Erro ao atualizar funcionário.');
+                    setError(t('funcionarios.messages.error_update'));
                 }
             } else {
                 const result = await supabaseEmployeeService.create(payload);
@@ -151,23 +153,23 @@ export const Funcionarios: React.FC = () => {
                     await loadData();
                     setIsModalOpen(false);
                 } else {
-                    setError('Erro ao criar funcionário.');
+                    setError(t('funcionarios.messages.error_create'));
                 }
             }
         } catch (err) {
             console.error(err);
-            setError('Ocorreu um erro ao salvar.');
+            setError(t('funcionarios.messages.error_save'));
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (window.confirm('Tem certeza que deseja excluir este funcionário?')) {
+        if (window.confirm(t('funcionarios.messages.confirm_delete'))) {
             const success = await supabaseEmployeeService.delete(id);
             if (success) {
                 // Optimistic update or reload
                 await loadData();
             } else {
-                alert('Erro ao excluir funcionário.');
+                alert(t('funcionarios.messages.error_delete'));
             }
         }
     };
@@ -199,10 +201,10 @@ export const Funcionarios: React.FC = () => {
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                         <User className="text-blue-600" />
-                        Funcionários
+                        {t('funcionarios.title')}
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">
-                        Gerencie o cadastro de colaboradores
+                        {t('funcionarios.subtitle')}
                     </p>
                 </div>
                 <button
@@ -210,7 +212,7 @@ export const Funcionarios: React.FC = () => {
                     className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
                 >
                     <Plus size={20} />
-                    <span>Novo Funcionário</span>
+                    <span>{t('funcionarios.btn_new')}</span>
                 </button>
             </div>
 
@@ -220,7 +222,7 @@ export const Funcionarios: React.FC = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     <input
                         type="text"
-                        placeholder="Buscar por nome, departamento, empresa ou usuário..."
+                        placeholder={t('funcionarios.filters.search_placeholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100"
@@ -233,7 +235,7 @@ export const Funcionarios: React.FC = () => {
                         onChange={(e) => setFilterDepartment(e.target.value)}
                         className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-slate-300"
                     >
-                        <option value="">Todos os Departamentos</option>
+                        <option value="">{t('funcionarios.filters.all_departments')}</option>
                         {departments.map(dept => (
                             <option key={dept.id} value={dept.id}>
                                 {dept.name}
@@ -246,7 +248,7 @@ export const Funcionarios: React.FC = () => {
                         onChange={(e) => setFilterCompany(e.target.value)}
                         className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-slate-300"
                     >
-                        <option value="">Todas as Empresas Contratantes</option>
+                        <option value="">{t('funcionarios.filters.all_companies')}</option>
                         {companies.map(company => (
                             <option key={company.id} value={company.id}>
                                 {company.nome_pbi}
@@ -262,24 +264,24 @@ export const Funcionarios: React.FC = () => {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nome / Usuário</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Departamento</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Empresa (Contratante)</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('funcionarios.table.name')}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('funcionarios.table.department')}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('funcionarios.table.company')}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('funcionarios.table.status')}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">{t('funcionarios.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                             {loading ? (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
-                                        Carregando...
+                                        {t('common.loading')}
                                     </td>
                                 </tr>
                             ) : filteredEmployees.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
-                                        Nenhum funcionário encontrado.
+                                        {t('funcionarios.empty_search')}
                                     </td>
                                 </tr>
                             ) : (
@@ -303,7 +305,7 @@ export const Funcionarios: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(employee.estadotrabajador)}`}>
-                                                {employee.estadotrabajador || 'Indefinido'}
+                                                {t(`funcionarios.status.${employee.estadotrabajador || 'Indefinido'}`)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
@@ -336,7 +338,7 @@ export const Funcionarios: React.FC = () => {
                     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center p-6 border-b border-slate-200 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800 z-10">
                             <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                                {editingId ? 'Editar Funcionário' : 'Novo Funcionário'}
+                                {editingId ? t('funcionarios.modal.title_edit') : t('funcionarios.modal.title_new')}
                             </h2>
                             <button
                                 onClick={() => setIsModalOpen(false)}
@@ -356,11 +358,11 @@ export const Funcionarios: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* --- Informações Pessoais --- */}
                                 <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b pb-2 mb-4">Informações Pessoais</h3>
+                                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b pb-2 mb-4">{t('funcionarios.modal.personal_info')}</h3>
 
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                            Nome Completo *
+                                            {t('funcionarios.modal.full_name')}
                                         </label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -377,7 +379,7 @@ export const Funcionarios: React.FC = () => {
 
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                            Data de Nascimento
+                                            {t('funcionarios.modal.birth_date')}
                                         </label>
                                         <div className="relative">
                                             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -393,11 +395,11 @@ export const Funcionarios: React.FC = () => {
 
                                 {/* --- Contato --- */}
                                 <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b pb-2 mb-4">Contato</h3>
+                                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b pb-2 mb-4">{t('funcionarios.modal.contact')}</h3>
 
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                            Email Empresarial
+                                            {t('funcionarios.modal.email')}
                                         </label>
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -414,7 +416,7 @@ export const Funcionarios: React.FC = () => {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Telefone Direto
+                                                {t('funcionarios.modal.phone')}
                                             </label>
                                             <div className="relative">
                                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -429,7 +431,7 @@ export const Funcionarios: React.FC = () => {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Ramal
+                                                {t('funcionarios.modal.extension')}
                                             </label>
                                             <input
                                                 type="text"
@@ -444,12 +446,12 @@ export const Funcionarios: React.FC = () => {
 
                                 {/* --- Dados Contratuais --- */}
                                 <div className="space-y-4 md:col-span-2">
-                                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b pb-2 mb-4">Dados Contratuais</h3>
+                                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b pb-2 mb-4">{t('funcionarios.modal.contract_data')}</h3>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Departamento *
+                                                {t('funcionarios.modal.department')}
                                             </label>
                                             <select
                                                 required
@@ -457,7 +459,7 @@ export const Funcionarios: React.FC = () => {
                                                 onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
                                                 className="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             >
-                                                <option value="">Selecione um departamento</option>
+                                                <option value="">{t('funcionarios.modal.select_department')}</option>
                                                 {departments.map(dept => (
                                                     <option key={dept.id} value={dept.id}>
                                                         {dept.name}
@@ -468,7 +470,7 @@ export const Funcionarios: React.FC = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Código de Responsabilidade
+                                                {t('funcionarios.modal.responsibility_code')}
                                             </label>
                                             <input
                                                 type="text"
@@ -480,14 +482,14 @@ export const Funcionarios: React.FC = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Empresa Contratante
+                                                {t('funcionarios.modal.hiring_company')}
                                             </label>
                                             <select
                                                 value={formData.empresa_contratante_id}
                                                 onChange={(e) => setFormData({ ...formData, empresa_contratante_id: e.target.value === '' ? '' : Number(e.target.value) })}
                                                 className="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             >
-                                                <option value="">Selecione a empresa...</option>
+                                                <option value="">{t('funcionarios.modal.select_company')}</option>
                                                 {companies.map(company => (
                                                     <option key={company.id} value={company.id}>
                                                         {company.nome_pbi}
@@ -498,14 +500,14 @@ export const Funcionarios: React.FC = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Empresa de Serviços
+                                                {t('funcionarios.modal.service_company')}
                                             </label>
                                             <select
                                                 value={formData.empresa_servicos_id}
                                                 onChange={(e) => setFormData({ ...formData, empresa_servicos_id: e.target.value === '' ? '' : Number(e.target.value) })}
                                                 className="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             >
-                                                <option value="">Selecione a empresa...</option>
+                                                <option value="">{t('funcionarios.modal.select_company')}</option>
                                                 {companies.map(company => (
                                                     <option key={company.id} value={company.id}>
                                                         {company.nome_pbi}
@@ -516,7 +518,7 @@ export const Funcionarios: React.FC = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Local de Trabalho
+                                                {t('funcionarios.modal.workplace')}
                                             </label>
                                             <div className="relative">
                                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -531,7 +533,7 @@ export const Funcionarios: React.FC = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Data de Início
+                                                {t('funcionarios.modal.start_date')}
                                             </label>
                                             <div className="relative">
                                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -546,7 +548,7 @@ export const Funcionarios: React.FC = () => {
 
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                IBAN
+                                                {t('funcionarios.modal.iban')}
                                             </label>
                                             <div className="relative">
                                                 <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -563,7 +565,7 @@ export const Funcionarios: React.FC = () => {
                                         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                    Usuário (Sistema)
+                                                    {t('funcionarios.modal.system_user')}
                                                 </label>
                                                 <div className="relative">
                                                     <UserCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -579,16 +581,16 @@ export const Funcionarios: React.FC = () => {
 
                                             <div>
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                    Status
+                                                    {t('funcionarios.table.status')}
                                                 </label>
                                                 <select
                                                     value={formData.estadotrabajador}
                                                     onChange={(e) => setFormData({ ...formData, estadotrabajador: e.target.value })}
                                                     className="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                                 >
-                                                    <option value="Ativo">Ativo</option>
-                                                    <option value="Inativo">Inativo</option>
-                                                    <option value="Desligado">Desligado</option>
+                                                    <option value="Ativo">{t('funcionarios.status.Ativo')}</option>
+                                                    <option value="Inativo">{t('funcionarios.status.Inativo')}</option>
+                                                    <option value="Desligado">{t('funcionarios.status.Desligado')}</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -602,14 +604,14 @@ export const Funcionarios: React.FC = () => {
                                     onClick={() => setIsModalOpen(false)}
                                     className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
                                 >
-                                    Cancelar
+                                    {t('funcionarios.modal.btn_cancel')}
                                 </button>
                                 <button
                                     type="submit"
                                     className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
                                 >
                                     <Save size={18} />
-                                    <span>{editingId ? 'Salvar Alterações' : 'Criar Funcionário'}</span>
+                                    <span>{editingId ? t('funcionarios.modal.btn_save') : t('funcionarios.modal.btn_create')}</span>
                                 </button>
                             </div>
                         </form>

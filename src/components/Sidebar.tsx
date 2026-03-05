@@ -54,8 +54,8 @@ export const Sidebar: React.FC = () => {
           </div>
           {isSidebarOpen && (
             <div className="min-w-0">
-              <h1 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight truncate">MCS Operações</h1>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">Mastercorp Suite</p>
+              <h1 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight truncate">{t('menu.app_name')}</h1>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">{t('menu.app_subtitle')}</p>
             </div>
           )}
         </div>
