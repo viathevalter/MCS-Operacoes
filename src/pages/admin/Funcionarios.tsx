@@ -19,7 +19,7 @@ import {
 import { supabaseEmployeeService, Employee } from '../../services/db/SupabaseEmployeeService';
 import { supabaseDepartmentService } from '../../services/db/SupabaseDepartmentService';
 import { supabaseCompanyService, Company } from '../../services/db/SupabaseCompanyService';
-import type { Department } from '../../services/types';
+import type { Department } from '../../types/models';
 
 interface FormData {
     department_id: string;

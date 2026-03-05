@@ -130,3 +130,42 @@ export interface Notification {
   created_at: string;
   read_at?: string; // If null/undefined, it is unread
 }
+
+// --- COMMISSIONS MODELS ---
+
+export interface CommissionSettings {
+  id: number;
+  comissao_base: number;
+  bonus_novo_cliente: number;
+  carencia_dias: number;
+  updated_at: string;
+}
+
+export type CommissionType = 'contratacao' | 'bonus_cliente_novo' | 'desconto_reemplazo';
+export type CommissionAdjustmentType = 'pagamento' | 'ajuste_positivo' | 'ajuste_negativo';
+
+export interface CommissionGenerated {
+  id: string; // 'hire_123', 'bonus_123', 'desc_123'
+  vendedor_nome: string;
+  vendedor_email: string;
+  codpedido: string;
+  nome_colab: string;
+  cliente_nombre: string;
+  tipo: CommissionType;
+  valor: number;
+  data_referencia: string;
+  mes_referencia: string; // 'YYYY-MM'
+}
+
+export interface CommissionLancamento {
+  id: string;
+  vendedor_email: string;
+  vendedor_nome: string;
+  tipo: CommissionAdjustmentType;
+  mes_referencia: string; // 'YYYY-MM'
+  valor: number;
+  referencia_id?: string; // Links to CommissionGenerated.id if it's a payment
+  descricao?: string;
+  created_at: string;
+  created_by?: string;
+}

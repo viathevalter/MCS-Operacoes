@@ -17,6 +17,7 @@ import { Departamentos } from './pages/admin/Departamentos';
 import { Funcionarios } from './pages/admin/Funcionarios';
 import { ImportarFuncionarios } from './pages/admin/ImportarFuncionarios';
 import { UserManagement } from './pages/admin/UserManagement';
+import { Comissoes } from './pages/admin/Comissoes';
 import { Tasks } from './pages/Tasks';
 import { LoginPage } from './pages/Login';
 import type { Filters } from './services/types';
@@ -87,6 +88,11 @@ const AppContent: React.FC = () => {
             <Route path="/admin/usuarios" element={
               <ProtectedRoute>
                 <UserManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/comissoes" element={
+              <ProtectedRoute>
+                <Comissoes />
               </ProtectedRoute>
             } />
             <Route path="/clientes" element={<Clientes />} />
