@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
-    getIncidencia, listTarefas, listLogs, addLog, updateTarefa, createTarefa, assignTarefa, updateIncidencia, deleteTarefa
+    getIncidencia, listTarefas, listLogs, addLog, updateTarefa, createTarefa, assignTarefa, updateIncidencia, deleteTarefa, listDepartments
 } from '../services/incidencias';
 import { useAuth } from '../contexts/AuthContext';
 import { supabaseEmployeeService } from '../services/db/SupabaseEmployeeService';
@@ -26,6 +26,7 @@ export const IncidenciaDetail: React.FC = () => {
     const [tarefas, setTarefas] = useState<IncidenciaTarefa[]>([]);
     const [logs, setLogs] = useState<IncidenciaLog[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
+    const [departments, setDepartments] = useState<any[]>([]);
 
     const [newLogText, setNewLogText] = useState('');
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -41,10 +42,16 @@ export const IncidenciaDetail: React.FC = () => {
             const inc = await getIncidencia(id);
             setIncidencia(inc);
             if (inc) {
-                const [t, l, emps] = await Promise.all([listTarefas(inc.id), listLogs(inc.id), supabaseEmployeeService.list()]);
+                const [t, l, emps, depts] = await Promise.all([
+                    listTarefas(inc.id),
+                    listLogs(inc.id),
+                    supabaseEmployeeService.list(),
+                    listDepartments()
+                ]);
                 setTarefas(t);
                 setLogs(l);
                 setEmployees(emps.filter(e => e.active));
+                setDepartments(depts);
             }
         } catch (error) {
             console.error(error);
@@ -385,12 +392,13 @@ export const IncidenciaDetail: React.FC = () => {
                                     value={(editForm as any).departamento || ''}
                                     onChange={e => setEditForm(prev => ({ ...prev, departamento: e.target.value }) as any)}
                                 >
-                                    <option value="Operações">Operações</option>
-                                    <option value="RH">RH</option>
-                                    <option value="Segurança">Segurança</option>
-                                    <option value="Logística">Logística</option>
-                                    <option value="Comercial">Comercial</option>
-                                    <option value="Geral">Geral</option>
+                                    {departments.length > 0 ? (
+                                        departments.map(d => (
+                                            <option key={d.id} value={d.name}>{d.name}</option>
+                                        ))
+                                    ) : (
+                                        <option value="">{t('common.loading')}</option>
+                                    )}
                                 </select>
                             )}
                         </div>
@@ -708,17 +716,20 @@ export const IncidenciaDetail: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Departamento</label>
+                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">{t('incidencias.departamento')}</label>
                                 <select
-                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none"
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 dark:focus:border-blue-500 transition-all"
                                     value={newTask.departamento}
                                     onChange={e => setNewTask({ ...newTask, departamento: e.target.value })}
+                                    required
                                 >
-                                    <option value="Operações">Operações</option>
-                                    <option value="RH">RH</option>
-                                    <option value="Segurança">Segurança</option>
-                                    <option value="Logística">Logística</option>
-                                    <option value="Comercial">Comercial</option>
+                                    {departments.length > 0 ? (
+                                        departments.map(d => (
+                                            <option key={d.id} value={d.name}>{d.name}</option>
+                                        ))
+                                    ) : (
+                                        <option value="">{t('common.loading')}</option>
+                                    )}
                                 </select>
                             </div>
                             <div>
