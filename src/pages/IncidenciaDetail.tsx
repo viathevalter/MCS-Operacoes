@@ -148,6 +148,13 @@ export const IncidenciaDetail: React.FC = () => {
         if (!incidencia) return;
         try {
             await updateIncidencia(incidencia.id, editForm);
+
+            // If the user changed the department in the top-level edit, update the primary task
+            if (editForm.departamento && tarefas.length > 0 && tarefas[0].departamento !== editForm.departamento) {
+                await updateTarefa(tarefas[0].id, { departamento: editForm.departamento } as any);
+                setTarefas(tarefas.map((t, i) => i === 0 ? { ...t, departamento: editForm.departamento } : t));
+            }
+
             setIncidencia({ ...incidencia, ...editForm } as any);
             setIsEditingIncidencia(false);
             toast.success("Incidência atualizada com sucesso");
@@ -370,6 +377,22 @@ export const IncidenciaDetail: React.FC = () => {
                             ) : (
                                 incidencia.tipo && <span className="px-2 py-0.5 rounded text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">{incidencia.tipo}</span>
                             )}
+
+                            {isEditingIncidencia && tarefas.length > 0 && (
+                                <select
+                                    className="px-2 py-1 rounded text-xs bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-400 dark:border-slate-500 outline-none"
+                                    title="Departamento Impactado / Responsável"
+                                    value={(editForm as any).departamento || ''}
+                                    onChange={e => setEditForm(prev => ({ ...prev, departamento: e.target.value }) as any)}
+                                >
+                                    <option value="Operações">Operações</option>
+                                    <option value="RH">RH</option>
+                                    <option value="Segurança">Segurança</option>
+                                    <option value="Logística">Logística</option>
+                                    <option value="Comercial">Comercial</option>
+                                    <option value="Geral">Geral</option>
+                                </select>
+                            )}
                         </div>
                     </div>
                     <div className="text-right text-sm text-slate-500 dark:text-slate-400 flex flex-col items-end gap-2">
@@ -381,7 +404,14 @@ export const IncidenciaDetail: React.FC = () => {
                         ) : (
                             <button
                                 onClick={() => {
-                                    setEditForm({ titulo: incidencia.titulo, descricao: incidencia.descricao, impacto: incidencia.impacto, tipo: incidencia.tipo, status: incidencia.status });
+                                    setEditForm({
+                                        titulo: incidencia.titulo,
+                                        descricao: incidencia.descricao,
+                                        impacto: incidencia.impacto,
+                                        tipo: incidencia.tipo,
+                                        status: incidencia.status,
+                                        departamento: tarefas.length > 0 ? tarefas[0].departamento : undefined
+                                    } as any);
                                     setIsEditingIncidencia(true);
                                 }}
                                 className="text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-1 text-xs font-medium bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700"
@@ -490,7 +520,7 @@ export const IncidenciaDetail: React.FC = () => {
                                                             )}
                                                         </div>
                                                         {(user?.id === task.created_by || user?.isSuperAdmin) && (
-                                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                                                            <div className="flex items-center gap-1 opacity-50 group-hover:opacity-100 hover:opacity-100 transition-opacity ml-2">
                                                                 <button onClick={() => handleEditTask(task)} className="text-slate-400 hover:text-blue-500 transition-colors" title="Editar Tarefa">
                                                                     <Edit size={12} />
                                                                 </button>
