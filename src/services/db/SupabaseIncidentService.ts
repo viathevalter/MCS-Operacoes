@@ -72,9 +72,24 @@ export const supabaseIncidentService = {
     update: async (id: string, patch: Partial<Incident>): Promise<Incident | null> => {
         const dbPatch: any = {};
         if (patch.title) dbPatch.title = patch.title;
-        if (patch.description) dbPatch.description = patch.description;
+        if (patch.description !== undefined) dbPatch.description = patch.description;
         if (patch.status) dbPatch.status = mapStatusToDb(patch.status);
-        if (patch.data_fechamento) dbPatch.data_fechamento = patch.data_fechamento;
+        if (patch.data_fechamento !== undefined) dbPatch.data_fechamento = patch.data_fechamento;
+        if (patch.incident_type) dbPatch.incident_type = patch.incident_type;
+
+        // Fetch current context if we need to update impacto/prioridade
+        if (patch.impacto || patch.prioridade) {
+            const current = await supabase.from('mcs_incidents').select('context_json').eq('id', id).single();
+            if (current.data) {
+                const ctx = current.data.context_json || {};
+                ctx.extra = ctx.extra || {};
+                if (patch.impacto) ctx.extra.impacto = patch.impacto;
+                if (patch.prioridade) ctx.extra.prioridade = patch.prioridade;
+                dbPatch.context_json = ctx;
+            }
+        }
+
+        if (Object.keys(dbPatch).length === 0) return null;
 
         const { data, error } = await supabase
             .from('mcs_incidents')

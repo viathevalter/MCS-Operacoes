@@ -36,10 +36,14 @@ export const supabaseTaskService = {
                 // Maybe set started_at if null?
             }
         }
-        if (patch.assigned_to) dbPatch.assigned_to_email = patch.assigned_to;
+        if (patch.assigned_to !== undefined) dbPatch.assigned_to_email = patch.assigned_to;
         if (patch.scheduled_for !== undefined) dbPatch.scheduled_for = patch.scheduled_for;
-        // evidence column missing in DB, skipping
-        // if (patch.evidence) dbPatch.evidence = patch.evidence;
+        
+        if (patch.title !== undefined) dbPatch.title = patch.title;
+        if (patch.due_at !== undefined) dbPatch.due_at = patch.due_at;
+        if (patch.department_id !== undefined) dbPatch.department_id = patch.department_id;
+
+        if (Object.keys(dbPatch).length === 0) return null;
 
         const { data, error } = await supabase
             .from('mcs_incident_tasks')
