@@ -31,6 +31,10 @@ export const IncidenciaDetail: React.FC = () => {
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [newTask, setNewTask] = useState<{ id?: string, titulo: string, departamento: string, prazo: string, responsavel_email?: string }>({ titulo: '', departamento: 'Operações', prazo: '', responsavel_email: '' });
 
+    // Editing State
+    const [isEditingIncidencia, setIsEditingIncidencia] = useState(false);
+    const [editForm, setEditForm] = useState<Partial<Incidencia>>({});
+
     const loadData = async () => {
         if (!id) return;
         try {
@@ -75,48 +79,84 @@ export const IncidenciaDetail: React.FC = () => {
         }
     };
 
-    const handleAdvanceStatus = async (task: IncidenciaTarefa) => {
-        let newStatus: IncidenciaTarefa['status'] = 'Pendente';
+    const handleAdvanceStatus = async (task: IncidenciaTarefa, reverse: boolean = false) => {
+        let newStatus: IncidenciaTarefa['status'] = task.status;
 
-        if (task.status === 'Pendente') newStatus = 'Em Andamento';
-        else if (task.status === 'Em Andamento') newStatus = 'Concluida';
-        else if (task.status === 'Concluida') return;
+        if (reverse) {
+            if (task.status === 'Concluida') newStatus = 'Em Andamento';
+            else if (task.status === 'Em Andamento') newStatus = 'Pendente';
+            else if (task.status === 'Pendente') return;
+        } else {
+            if (task.status === 'Pendente') newStatus = 'Em Andamento';
+            else if (task.status === 'Em Andamento') newStatus = 'Concluida';
+            else if (task.status === 'Concluida') return;
+        }
 
         try {
+            const localTasks = tarefas.map(t => t.id === task.id ? { ...t, status: newStatus } : t);
+            setTarefas(localTasks); // Optimistic UI for fast clickers
+
             await updateTarefa(task.id, { status: newStatus });
-            const updatedList = await listTarefas(incidencia!.id);
-            setTarefas(updatedList);
 
             // --- AUTO-UPDATE INCIDENT STATUS LOGIC ---
-            // 1. If moving to 'Em Andamento' and incident is 'Aberto', update incident
-            if (newStatus === 'Em Andamento' && incidencia!.status === 'Aberto') {
-                await updateIncidencia(incidencia!.id, { status: 'Em Andamento' });
-                setIncidencia({ ...incidencia!, status: 'Em Andamento' }); // Optimistic update
-                await addLog(incidencia!.id, `Status alterado automaticamente para 'Em Andamento' (Tarefa iniciada)`, 'Sistema');
-            }
+            const allConcluded = localTasks.length > 0 && localTasks.every(t => t.status === 'Concluida');
+            const anyInProgress = localTasks.some(t => t.status === 'Em Andamento');
+            const anyConcluded = localTasks.some(t => t.status === 'Concluida');
 
-            // 2. If moving to 'Concluida', check if ALL tasks are concluded
-            if (newStatus === 'Concluida') {
-                const allConcluded = updatedList.every(t => t.status === 'Concluida');
-                if (allConcluded && incidencia!.status !== 'Resolvido' && incidencia!.status !== 'Fechado') {
-                    await updateIncidencia(incidencia!.id, { status: 'Resolvido', data_fechamento: new Date().toISOString() });
-                    setIncidencia({ ...incidencia!, status: 'Resolvido', data_fechamento: new Date().toISOString() }); // Optimistic
-                    await addLog(incidencia!.id, `Status alterado automaticamente para 'Resolvido' (Todas tarefas concluídas)`, 'Sistema');
-                } else if (incidencia!.status === 'Aberto') {
-                    // If at least one task is done (even if others pending), move incident to In Progress if it was Open
-                    await updateIncidencia(incidencia!.id, { status: 'Em Andamento' });
-                    setIncidencia({ ...incidencia!, status: 'Em Andamento' });
-                    await addLog(incidencia!.id, `Status alterado automaticamente para 'Em Andamento' (Tarefa concluída)`, 'Sistema');
+            let newIncidentStatus = incidencia!.status;
+
+            if (allConcluded) {
+                if (incidencia!.status !== 'Resolvido' && incidencia!.status !== 'Fechado') {
+                    newIncidentStatus = 'Resolvido';
+                }
+            } else {
+                if (anyInProgress || anyConcluded) {
+                    if (incidencia!.status === 'Aberto' || incidencia!.status === 'Resolvido' || incidencia!.status === 'Fechado') {
+                        newIncidentStatus = 'Em Andamento';
+                    }
+                } else if (incidencia!.status === 'Resolvido' || incidencia!.status === 'Fechado') {
+                    newIncidentStatus = 'Aberto';
                 }
             }
 
-            const l = await listLogs(incidencia!.id); // Helper to refresh logs
+            if (newIncidentStatus !== incidencia!.status) {
+                const isResolving = newIncidentStatus === 'Resolvido';
+                const payload: any = {
+                    status: newIncidentStatus,
+                    data_fechamento: isResolving ? new Date().toISOString() : null
+                };
+
+                await updateIncidencia(incidencia!.id, payload);
+                setIncidencia(prev => prev ? { ...prev, ...payload } : null);
+                await addLog(incidencia!.id, `Status alterado automaticamente para '${newIncidentStatus}'`, 'Sistema');
+            }
+
+            // Sync with backend at the end to guarantee latest state
+            const updatedList = await listTarefas(incidencia!.id);
+            setTarefas(updatedList);
+            const l = await listLogs(incidencia!.id);
             setLogs(l);
             toast.success(`Status da tarefa atualizado: ${newStatus}`);
 
         } catch (error) {
             console.error(error);
             toast.error("Erro ao atualizar status da tarefa");
+        }
+    };
+
+    const handleSaveIncidenciaEdit = async () => {
+        if (!incidencia) return;
+        try {
+            await updateIncidencia(incidencia.id, editForm);
+            setIncidencia({ ...incidencia, ...editForm } as any);
+            setIsEditingIncidencia(false);
+            toast.success("Incidência atualizada com sucesso");
+            await addLog(incidencia.id, "Detalhes da incidência editados manualmente.", user?.email || 'Sistema');
+            const l = await listLogs(incidencia.id);
+            setLogs(l);
+        } catch (error) {
+            console.error(error);
+            toast.error("Erro ao atualizar incidência");
         }
     };
 
@@ -267,20 +307,89 @@ export const IncidenciaDetail: React.FC = () => {
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                             <span className="text-sm font-mono text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">#{incidencia.id.substring(0, 8)}...</span>
-                            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{incidencia.titulo}</h1>
+                            {isEditingIncidencia ? (
+                                <input
+                                    type="text"
+                                    className="text-2xl font-bold bg-white dark:bg-slate-900 border border-blue-400 rounded px-2 py-1 w-full max-w-xl outline-none"
+                                    value={editForm.titulo || ''}
+                                    onChange={e => setEditForm({ ...editForm, titulo: e.target.value })}
+                                />
+                            ) : (
+                                <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{incidencia.titulo}</h1>
+                            )}
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                            <span className={`px-2 py-0.5 rounded text-xs font-bold border ${getPriorityColor(incidencia.impacto)}`}>
-                                {impactDisplay}
-                            </span>
-                            <span className="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
-                                {statusDisplay}
-                            </span>
-                            {incidencia.tipo && <span className="px-2 py-0.5 rounded text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">{incidencia.tipo}</span>}
+                        <div className="flex flex-wrap gap-2 items-center">
+                            {isEditingIncidencia ? (
+                                <select
+                                    className="px-2 py-1 rounded text-xs font-bold border outline-none bg-white dark:bg-slate-900"
+                                    value={editForm.impacto || ''}
+                                    onChange={e => setEditForm(prev => ({ ...prev, impacto: e.target.value as any }))}
+                                >
+                                    <option value="Baixo">Baixo</option>
+                                    <option value="Médio">Médio</option>
+                                    <option value="Alto">Alto</option>
+                                    <option value="Crítico">Crítico</option>
+                                </select>
+                            ) : (
+                                <span className={`px-2 py-0.5 rounded text-xs font-bold border ${getPriorityColor(incidencia.impacto)}`}>
+                                    {impactDisplay}
+                                </span>
+                            )}
+
+                            {isEditingIncidencia ? (
+                                <select
+                                    className="px-2 py-1 rounded text-xs font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-900 outline-none"
+                                    value={editForm.status || ''}
+                                    onChange={e => setEditForm(prev => ({ ...prev, status: e.target.value as any }))}
+                                >
+                                    <option value="Aberto">Aberto</option>
+                                    <option value="Em Andamento">Em Andamento</option>
+                                    <option value="Resolvido">Resolvido</option>
+                                    <option value="Fechado">Fechado</option>
+                                </select>
+                            ) : (
+                                <span className="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+                                    {statusDisplay}
+                                </span>
+                            )}
+
+                            {isEditingIncidencia ? (
+                                <select
+                                    className="px-2 py-1 rounded text-xs bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 outline-none"
+                                    value={editForm.tipo || ''}
+                                    onChange={e => setEditForm(prev => ({ ...prev, tipo: e.target.value }))}
+                                >
+                                    <option value="Geral">Geral</option>
+                                    <option value="Falta">Falta</option>
+                                    <option value="Acidente">Acidente</option>
+                                    <option value="Qualidade">Qualidade</option>
+                                    <option value="Segurança">Segurança</option>
+                                    <option value="Reemplazo">Reemplazo</option>
+                                    <option value="Task">Task</option>
+                                </select>
+                            ) : (
+                                incidencia.tipo && <span className="px-2 py-0.5 rounded text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">{incidencia.tipo}</span>
+                            )}
                         </div>
                     </div>
-                    <div className="text-right text-sm text-slate-500 dark:text-slate-400">
-                        <div className="flex items-center justify-end gap-1 mb-1">
+                    <div className="text-right text-sm text-slate-500 dark:text-slate-400 flex flex-col items-end gap-2">
+                        {isEditingIncidencia ? (
+                            <div className="flex gap-2">
+                                <button onClick={() => { setIsEditingIncidencia(false); setEditForm({}); }} className="text-slate-400 hover:text-slate-600 px-2 py-1">Cancelar</button>
+                                <button onClick={handleSaveIncidenciaEdit} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded shadow-sm text-xs font-bold">Salvar</button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    setEditForm({ titulo: incidencia.titulo, descricao: incidencia.descricao, impacto: incidencia.impacto, tipo: incidencia.tipo, status: incidencia.status });
+                                    setIsEditingIncidencia(true);
+                                }}
+                                className="text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-1 text-xs font-medium bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700"
+                            >
+                                <Edit size={12} /> Editar
+                            </button>
+                        )}
+                        <div className="flex items-center justify-end gap-1 mb-1 mt-1">
                             <Calendar size={14} />
                             {t('incidencias.detail.open')}: {new Date(incidencia.data_abertura).toLocaleDateString()}
                         </div>
@@ -298,9 +407,18 @@ export const IncidenciaDetail: React.FC = () => {
                     <ContextCard context={incidencia.context} />
                 </div>
 
-                {incidencia.descricao && (
+                {(incidencia.descricao || isEditingIncidencia) && (
                     <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                        <p className="text-slate-600 dark:text-slate-300 text-sm">{incidencia.descricao}</p>
+                        {isEditingIncidencia ? (
+                            <textarea
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-blue-400 rounded px-3 py-2 text-sm outline-none resize-y min-h-[80px]"
+                                value={editForm.descricao || ''}
+                                onChange={e => setEditForm(prev => ({ ...prev, descricao: e.target.value }))}
+                                placeholder="Descrição detalhada..."
+                            />
+                        ) : (
+                            <p className="text-slate-600 dark:text-slate-300 text-sm">{incidencia.descricao}</p>
+                        )}
                     </div>
                 )}
             </div>
@@ -333,19 +451,30 @@ export const IncidenciaDetail: React.FC = () => {
                                 <div key={task.id} className={`p-4 transition-colors ${task.status === 'Concluida' ? 'bg-slate-50 dark:bg-slate-800/50' : 'hover:bg-blue-50/30 dark:hover:bg-blue-900/10'}`}>
                                     <div className="flex items-start gap-3">
                                         {/* Action Button */}
-                                        <button
-                                            onClick={() => handleAdvanceStatus(task)}
-                                            className={`mt-0.5 flex-shrink-0 w-6 h-6 rounded-full border flex items-center justify-center transition-all ${task.status === 'Concluida'
-                                                ? 'bg-emerald-500 border-emerald-500 text-white'
-                                                : task.status === 'Em Andamento'
-                                                    ? 'bg-blue-100 border-blue-400 text-blue-600 animate-pulse'
-                                                    : 'border-slate-300 hover:border-blue-400 text-slate-300'
-                                                }`}
-                                            title={taskStatusDisplay}
-                                        >
-                                            {task.status === 'Concluida' && <CheckCircle size={14} />}
-                                            {task.status === 'Em Andamento' && <Play size={10} fill="currentColor" />}
-                                        </button>
+                                        <div className="flex flex-col items-center gap-1 mt-0.5">
+                                            <button
+                                                onClick={() => handleAdvanceStatus(task)}
+                                                className={`flex-shrink-0 w-6 h-6 rounded-full border flex items-center justify-center transition-all ${task.status === 'Concluida'
+                                                    ? 'bg-emerald-500 border-emerald-500 text-white'
+                                                    : task.status === 'Em Andamento'
+                                                        ? 'bg-blue-100 border-blue-400 text-blue-600 animate-pulse'
+                                                        : 'border-slate-300 hover:border-blue-400 text-slate-300 hover:text-blue-500'
+                                                    }`}
+                                                title={taskStatusDisplay}
+                                            >
+                                                {task.status === 'Concluida' && <CheckCircle size={14} />}
+                                                {task.status === 'Em Andamento' && <Play size={10} fill="currentColor" />}
+                                            </button>
+                                            {task.status !== 'Pendente' && (
+                                                <button
+                                                    onClick={() => handleAdvanceStatus(task, true)}
+                                                    className="text-slate-300 hover:text-amber-500 transition-colors"
+                                                    title="Reverter Status"
+                                                >
+                                                    <ArrowLeft size={12} />
+                                                </button>
+                                            )}
+                                        </div>
 
                                         <div className="flex-1">
                                             <div className="flex justify-between items-start">
@@ -360,7 +489,7 @@ export const IncidenciaDetail: React.FC = () => {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        {(user?.id === task.created_by) && (
+                                                        {(user?.id === task.created_by || user?.isSuperAdmin) && (
                                                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
                                                                 <button onClick={() => handleEditTask(task)} className="text-slate-400 hover:text-blue-500 transition-colors" title="Editar Tarefa">
                                                                     <Edit size={12} />

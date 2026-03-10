@@ -221,6 +221,9 @@ export const updateIncidencia = async (id: string, patch: any): Promise<void> =>
     if (patch.descricao) modelPatch.description = patch.descricao;
     if (patch.status) modelPatch.status = patch.status;
     if (patch.data_fechamento) modelPatch.data_fechamento = patch.data_fechamento;
+    if (patch.impacto) modelPatch.impacto = patch.impacto;
+    if (patch.prioridade) modelPatch.prioridade = patch.prioridade;
+    if (patch.tipo) modelPatch.incident_type = patch.tipo;
 
     await incidentService.update(id, modelPatch);
 };
@@ -275,6 +278,19 @@ export const updateTarefa = async (id: number | string, patch: Partial<Incidenci
     if (patch.status) modelPatch.status = patch.status; // Service maps to DB status
     if (patch.evidencia) modelPatch.evidence = patch.evidencia;
     if (patch.scheduled_for !== undefined) modelPatch.scheduled_for = patch.scheduled_for;
+
+    // Support full task editing (CRUD)
+    if (patch.titulo) modelPatch.title = patch.titulo;
+    if (patch.prazo) modelPatch.due_at = patch.prazo;
+    if (patch.responsavel_email !== undefined) modelPatch.assigned_to = patch.responsavel_email;
+
+    if (patch.departamento) {
+        const depts = await departmentService.list();
+        const dept = depts.find(d => d.name === patch.departamento);
+        if (dept) {
+            modelPatch.department_id = dept.id;
+        }
+    }
 
     await incidentTaskService.update(String(id), modelPatch);
 };
