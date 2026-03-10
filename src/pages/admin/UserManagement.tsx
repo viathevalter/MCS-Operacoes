@@ -83,28 +83,25 @@ export const UserManagement: React.FC = () => {
 
     const handleSave = async (userId: string) => {
         try {
-            // 1. Update mcs_users role/display_name
-            const { error: userError } = await supabase
+            // 1. Update ONLY display_name directly if needed (RLS usually allows updating own records or basic info, 
+            // but if this fails too, we can move it to the RPC, for now let's keep it here first)
+            const { error: nameError } = await supabase
                 .from('mcs_users')
-                .update({
-                    role: formData.role,
-                    display_name: formData.display_name,
-                    managed_departments: formData.role === 'admin' ? formData.managed_departments : []
-                })
+                .update({ display_name: formData.display_name })
                 .eq('id', userId);
 
-            if (userError) throw userError;
+            if (nameError) throw nameError;
 
-            // Also update profiles
-            await supabase
-                .from('profiles')
-                .update({
-                    role: formData.role,
-                    managed_departments: formData.role === 'admin' ? formData.managed_departments : []
-                })
-                .eq('id', userId);
+            // 2. Call secure RPC to update Roles and Departments
+            const { error: rpcError } = await supabase.rpc('update_user_role', {
+                target_user_id: userId,
+                new_role: formData.role,
+                new_managed_departments: formData.role === 'admin' ? formData.managed_departments || [] : []
+            });
 
-            // 2. Update Employee Link
+            if (rpcError) throw rpcError;
+
+            // 3. Update Employee Link
             // First unlink any employee currently linked to this user (if changing)
             // Ideally we'd do this more carefully, but for now:
 
