@@ -329,6 +329,8 @@ export const pt = {
     title: 'Gestão de Comissões',
     subtitle: 'Controle de bônus, recebíveis e contas correntes',
     filters: {
+      start_date: 'Data Início',
+      end_date: 'Data Fim',
       all_sellers: 'Todos os Vendedores',
       label: 'Filtros:',
       client_placeholder: 'Filtrar por Cliente...',
@@ -353,6 +355,7 @@ export const pt = {
     },
     table: {
       title: 'Extrato Detalhado',
+      btn_export: 'Exportar Excel',
       btn_extra: 'Lançamento Extra',
       btn_pay: 'Pagar',
       col_date: 'Data',
@@ -379,11 +382,16 @@ export const pt = {
       btn_save: 'Salvar Lançamento'
     },
     messages: {
-      load_error: 'Erro ao carregar comissões.',
-      confirm_pay: 'Confirma o pagamento de {{count}} comissões selecionadas?',
+      adj_value: 'Valor (Ex: 50.00)',
+      adj_desc: 'Descrição do Ajuste',
+      confirm_pay: 'Confirmar o pagamento de {{count}} comissões selecionadas?',
+      confirm_revert: 'Tem certeza que deseja reverter este pagamento/ajuste?',
       pay_success: 'Pagamentos registrados com sucesso!',
       pay_error: 'Erro ao registrar pagamentos.',
-      save_error: 'Erro ao salvar ajuste'
+      save_error: 'Erro ao salvar o lançamento extra.',
+      revert_success: 'Lançamento revertido com sucesso!',
+      revert_error: 'Erro ao reverter o lançamento.',
+      load_error: 'Falha ao carregar comissões.'
     }
   }
 };

@@ -28,11 +28,14 @@ export const commissionService = {
     },
 
     // Fetch pending commissions (from View)
-    async getComissoesGeradas(mesReferencia?: string, vendedorEmail?: string): Promise<CommissionGenerated[]> {
+    async getComissoesGeradas(startDate?: string, endDate?: string, vendedorEmail?: string): Promise<CommissionGenerated[]> {
         let query = supabase.from('vw_comissoes_geradas').select('*');
 
-        if (mesReferencia) {
-            query = query.eq('mes_referencia', mesReferencia);
+        if (startDate) {
+            query = query.gte('data_referencia', startDate);
+        }
+        if (endDate) {
+            query = query.lte('data_referencia', endDate);
         }
         if (vendedorEmail) {
             query = query.eq('vendedor_email', vendedorEmail);
@@ -44,11 +47,17 @@ export const commissionService = {
     },
 
     // Fetch ledger (payments and manual adjustments)
-    async getLancamentos(mesReferencia?: string, vendedorEmail?: string): Promise<CommissionLancamento[]> {
+    async getLancamentos(startDate?: string, endDate?: string, vendedorEmail?: string): Promise<CommissionLancamento[]> {
         let query = supabase.from('mcs_comissoes_lancamentos').select('*');
 
-        if (mesReferencia) {
-            query = query.eq('mes_referencia', mesReferencia);
+        if (startDate) {
+            // Assumimos que a data base para filtragem será o created_at (data do lançamento do pagamento/ajuste)
+            // Se fosse pela referência do mês (ex: pagou retroativamente), teremos que analisar a regra.
+            // Para manter a visão de fluxo de caixa, o date range vai usar created_at para exibir os pagamentos DAQUELE período.
+            query = query.gte('created_at', `${startDate}T00:00:00.000Z`);
+        }
+        if (endDate) {
+            query = query.lte('created_at', `${endDate}T23:59:59.999Z`);
         }
         if (vendedorEmail) {
             query = query.eq('vendedor_email', vendedorEmail);
@@ -103,6 +112,15 @@ export const commissionService = {
                 descricao,
                 created_by: adminId
             }]);
+
+        if (error) throw error;
+    },
+
+    async deleteLancamento(id: string): Promise<void> {
+        const { error } = await supabase
+            .from('mcs_comissoes_lancamentos')
+            .delete()
+            .eq('id', id);
 
         if (error) throw error;
     }

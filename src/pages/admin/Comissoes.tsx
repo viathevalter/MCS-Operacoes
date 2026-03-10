@@ -2,8 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { commissionService } from '../../services/db/SupabaseCommissionService';
 import { CommissionGenerated, CommissionLancamento, CommissionSettings } from '../../types/models';
-import { Filter, DollarSign, Wallet, ArrowDownCircle, Info, PlusCircle } from 'lucide-react';
+import { Filter, DollarSign, Wallet, ArrowDownCircle, Info, PlusCircle, Download, Trash2 } from 'lucide-react';
 import { useLanguage } from '../../i18n';
+import * as XLSX from 'xlsx';
+import { MultiSelect } from '../../components/ui/MultiSelect';
 
 export const Comissoes: React.FC = () => {
     const { t } = useLanguage();
@@ -14,13 +16,16 @@ export const Comissoes: React.FC = () => {
 
     // Filters
     const currentDate = new Date();
-    const currentMonthStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-    const [mesReferencia, setMesReferencia] = useState(currentMonthStr);
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().split('T')[0];
+    const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).toISOString().split('T')[0];
+
+    const [startDate, setStartDate] = useState(firstDay);
+    const [endDate, setEndDate] = useState(lastDay);
     const [vendedorFilter, setVendedorFilter] = useState<string>('');
 
     // Extra Filters
-    const [clienteFilter, setClienteFilter] = useState('');
-    const [pedidoFilter, setPedidoFilter] = useState('');
+    const [clienteFilter, setClienteFilter] = useState<string[]>([]);
+    const [pedidoFilter, setPedidoFilter] = useState<string[]>([]);
     const [tipoFilter, setTipoFilter] = useState('');
 
     const [loading, setLoading] = useState(false);
@@ -34,7 +39,7 @@ export const Comissoes: React.FC = () => {
 
     useEffect(() => {
         loadData();
-    }, [mesReferencia, vendedorFilter]);
+    }, [startDate, endDate, vendedorFilter]);
 
     const loadData = async () => {
         setLoading(true);
@@ -44,8 +49,8 @@ export const Comissoes: React.FC = () => {
 
             const emailToFetch = isSupervisor ? (vendedorFilter || undefined) : user?.email;
 
-            const g = await commissionService.getComissoesGeradas(mesReferencia, emailToFetch);
-            const l = await commissionService.getLancamentos(mesReferencia, emailToFetch);
+            const g = await commissionService.getComissoesGeradas(startDate, endDate, emailToFetch);
+            const l = await commissionService.getLancamentos(startDate, endDate, emailToFetch);
 
             setGeradas(g);
             setLancamentos(l);
@@ -106,20 +111,27 @@ export const Comissoes: React.FC = () => {
             });
         });
 
-        // Add pure adjustments (not tied to a specific generated commission)
-        lancamentos.filter(l => l.tipo !== 'pagamento').forEach(l => {
+        // Add pure adjustments and disconnected payments (payments not tied to a generated commission in the current view)
+        lancamentos.forEach(l => {
+            if (l.tipo === 'pagamento') {
+                // If it's a payment and its generated commission is in the current view, it's already merged.
+                if (geradas.some(g => g.id === l.referencia_id)) {
+                    return;
+                }
+            }
+
             combined.push({
                 _id: l.id,
-                _type: 'adjustment',
+                _type: l.tipo === 'pagamento' ? 'payment_record' : 'adjustment',
                 date: l.created_at,
                 vendedor_nome: l.vendedor_nome,
                 vendedor_email: l.vendedor_email,
                 cliente_nome: '',
                 pedido_cod: '',
                 tipo_lancamento: l.tipo,
-                desc: (l.tipo === 'ajuste_positivo' ? 'AJUSTE (+) ' : 'AJUSTE (-) ') + l.descricao,
+                desc: l.tipo === 'pagamento' ? 'PAGAMENTO DE COMISSÃO' : (l.tipo === 'ajuste_positivo' ? 'AJUSTE (+) ' : 'AJUSTE (-) ') + l.descricao,
                 valor: l.tipo === 'ajuste_negativo' ? -Math.abs(l.valor) : Math.abs(l.valor),
-                status: 'LANÇADO',
+                status: l.tipo === 'pagamento' ? 'PAGO' : 'LANÇADO',
                 paymentInfo: null
             });
         });
@@ -127,16 +139,26 @@ export const Comissoes: React.FC = () => {
         return combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [geradas, lancamentos]);
 
+    const clienteOptions = useMemo(() => {
+        const unique: string[] = Array.from(new Set(rows.map(r => String(r.cliente_nome)).filter(v => !!v && v !== 'undefined' && v !== 'null')));
+        return unique.map(c => ({ label: c, value: c })).sort((a, b) => (a.label as string).localeCompare(b.label as string));
+    }, [rows]);
+
+    const pedidoOptions = useMemo(() => {
+        const unique: string[] = Array.from(new Set(rows.map(r => String(r.pedido_cod)).filter(v => !!v && v !== 'undefined' && v !== 'null')));
+        return unique.map(p => ({ label: p, value: p })).sort((a, b) => (a.label as string).localeCompare(b.label as string));
+    }, [rows]);
+
     const filteredRows = useMemo(() => {
         return rows.filter(r => {
-            const matchCliente = r.cliente_nome.toLowerCase().includes(clienteFilter.toLowerCase()) || clienteFilter === '';
-            const matchPedido = r.pedido_cod.toLowerCase().includes(pedidoFilter.toLowerCase()) || pedidoFilter === '';
+            const matchCliente = clienteFilter.length === 0 || clienteFilter.includes(r.cliente_nome);
+            const matchPedido = pedidoFilter.length === 0 || pedidoFilter.includes(r.pedido_cod);
 
             let matchTipo = true;
             if (tipoFilter === 'contratacao') matchTipo = r.tipo_lancamento === 'contratacao';
             if (tipoFilter === 'bonus_cliente_novo') matchTipo = r.tipo_lancamento === 'bonus_cliente_novo';
             if (tipoFilter === 'desconto_reemplazo') matchTipo = r.tipo_lancamento === 'desconto_reemplazo';
-            if (tipoFilter === 'ajuste') matchTipo = r.tipo_lancamento === 'ajuste_positivo' || r.tipo_lancamento === 'ajuste_negativo';
+            if (tipoFilter === 'ajuste') matchTipo = r.tipo_lancamento === 'ajuste_positivo' || r.tipo_lancamento === 'ajuste_negativo' || r.tipo_lancamento === 'pagamento' || r.status === 'PAGO';
 
             return matchCliente && matchPedido && matchTipo;
         });
@@ -160,6 +182,10 @@ export const Comissoes: React.FC = () => {
                 // Adjustments generally affect the final payable amount, 
                 // so we add them to 'totalReceber' to represent the total debt to the seller
                 totalReceber += r.valor;
+            } else if (r._type === 'payment_record') {
+                totalPago += Math.abs(r.valor);
+                // Disconnected payments don't affect totalReceber in this view because 
+                // the corresponding 'generated' debt is not in the filtered rows.
             }
         });
 
@@ -193,7 +219,7 @@ export const Comissoes: React.FC = () => {
                     id: r._id,
                     email: r.vendedor_email,
                     name: r.vendedor_nome,
-                    mes_referencia: mesReferencia,
+                    mes_referencia: `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`,
                     valor: r.valor
                 }));
 
@@ -206,13 +232,27 @@ export const Comissoes: React.FC = () => {
         }
     };
 
+    const handleRevertPayment = async (lancamentoId: string) => {
+        if (!user) return;
+        if (!window.confirm(t('comissoes.messages.confirm_revert') || 'Tem certeza que deseja reverter este pagamento/ajuste?')) return;
+
+        try {
+            await commissionService.deleteLancamento(lancamentoId);
+            alert(t('comissoes.messages.revert_success') || 'Lançamento revertido com sucesso!');
+            loadData();
+        } catch (error) {
+            console.error('Error reverting payment:', error);
+            alert(t('comissoes.messages.revert_error') || 'Erro ao reverter o lançamento.');
+        }
+    };
+
     const handleSaveAdjustment = async () => {
         if (!user) return;
         try {
             await commissionService.insertAdjustment(
                 adjForm.email,
                 adjForm.name || adjForm.email,
-                mesReferencia,
+                `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`,
                 adjForm.tipo as any,
                 parseFloat(adjForm.valor),
                 adjForm.descricao,
@@ -227,6 +267,24 @@ export const Comissoes: React.FC = () => {
         }
     };
 
+    const exportToExcel = () => {
+        const dataToExport = filteredRows.map(r => ({
+            'Data': new Date(r.date).toLocaleDateString(),
+            'Vendedor': r.vendedor_nome,
+            'Cliente': r.cliente_nome || '-',
+            'Pedido': r.pedido_cod || '-',
+            'Tipo Lançamento': r.tipo_lancamento,
+            'Histórico': r.desc,
+            'Valor (€)': r.valor,
+            'Status': r.status
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Comissoes");
+        XLSX.writeFile(workbook, `Comissoes_${startDate}_a_${endDate}.xlsx`);
+    };
+
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6 text-slate-800 dark:text-slate-100">
             <div className="flex flex-col md:flex-row justify-between break-words gap-4 border-b border-slate-200 dark:border-slate-700 pb-4">
@@ -237,12 +295,20 @@ export const Comissoes: React.FC = () => {
 
                 {/* Filters */}
                 <div className="flex flex-wrap gap-2 items-center">
-                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border dark:border-slate-700 px-3 py-1.5 rounded-lg">
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border dark:border-slate-700 px-3 py-1.5 rounded-lg flex-shrink-0">
                         <Filter size={16} className="text-slate-400" />
+                        <span className="text-xs text-slate-500 font-medium">{t('comissoes.filters.start_date') || 'Início'}:</span>
                         <input
-                            type="month"
-                            value={mesReferencia}
-                            onChange={e => setMesReferencia(e.target.value)}
+                            type="date"
+                            value={startDate}
+                            onChange={e => setStartDate(e.target.value)}
+                            className="bg-transparent border-none outline-none text-sm dark:text-white"
+                        />
+                        <span className="text-xs text-slate-500 font-medium ml-2">{t('comissoes.filters.end_date') || 'Fim'}:</span>
+                        <input
+                            type="date"
+                            value={endDate}
+                            onChange={e => setEndDate(e.target.value)}
                             className="bg-transparent border-none outline-none text-sm dark:text-white"
                         />
                     </div>
@@ -264,20 +330,24 @@ export const Comissoes: React.FC = () => {
             {/* Advanced Filters Row */}
             <div className="flex flex-wrap gap-3 items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
                 <span className="text-sm font-medium text-slate-500 hidden sm:block">{t('comissoes.filters.label')}</span>
-                <input
-                    type="text"
-                    placeholder={t('comissoes.filters.client_placeholder')}
-                    value={clienteFilter}
-                    onChange={e => setClienteFilter(e.target.value)}
-                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm rounded-lg outline-none w-full sm:w-48 placeholder-slate-400"
-                />
-                <input
-                    type="text"
-                    placeholder={t('comissoes.filters.order_placeholder')}
-                    value={pedidoFilter}
-                    onChange={e => setPedidoFilter(e.target.value)}
-                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm rounded-lg outline-none w-full sm:w-40 placeholder-slate-400"
-                />
+                <div className="w-full sm:w-64 max-w-full">
+                    <MultiSelect
+                        options={clienteOptions}
+                        selectedValues={clienteFilter}
+                        onChange={setClienteFilter}
+                        placeholder={t('comissoes.filters.client_placeholder') || 'Filtrar por Cliente...'}
+                        searchPlaceholder="Buscar cliente..."
+                    />
+                </div>
+                <div className="w-full sm:w-64 max-w-full">
+                    <MultiSelect
+                        options={pedidoOptions}
+                        selectedValues={pedidoFilter}
+                        onChange={setPedidoFilter}
+                        placeholder={t('comissoes.filters.order_placeholder') || 'Pedido (PO-...)'}
+                        searchPlaceholder="Buscar pedido..."
+                    />
+                </div>
                 <select
                     value={tipoFilter}
                     onChange={e => setTipoFilter(e.target.value)}
@@ -337,6 +407,12 @@ export const Comissoes: React.FC = () => {
                     {isSupervisor && (
                         <div className="flex gap-2">
                             <button
+                                onClick={exportToExcel}
+                                className="px-3 py-1.5 text-xs font-medium border border-slate-800 dark:border-slate-600 rounded bg-slate-800 dark:bg-slate-900 text-white hover:bg-slate-700 transition-colors flex items-center gap-1"
+                            >
+                                <Download size={14} /> {t('comissoes.table.btn_export') || 'Exportar Excel'}
+                            </button>
+                            <button
                                 onClick={() => setIsAdjustmentModalOpen(true)}
                                 className="px-3 py-1.5 text-xs font-medium border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1"
                             >
@@ -370,6 +446,7 @@ export const Comissoes: React.FC = () => {
                                     <th className="px-4 py-3 text-slate-600 dark:text-slate-300 font-semibold">{t('comissoes.table.col_history')}</th>
                                     <th className="px-4 py-3 text-right text-slate-600 dark:text-slate-300 font-semibold">{t('comissoes.table.col_value')}</th>
                                     <th className="px-4 py-3 text-center text-slate-600 dark:text-slate-300 font-semibold">{t('comissoes.table.col_status')}</th>
+                                    <th className="py-3 px-4 text-left font-medium w-12 rounded-tr-lg"></th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -408,10 +485,12 @@ export const Comissoes: React.FC = () => {
                                                 <td className={`px-4 py-3 text-right font-medium ${row.valor > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                                                     {row.valor > 0 ? '+' : ''}{row.valor.toFixed(2)}
                                                 </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${row.status === 'PAGO' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
-                                                        row.status === 'PENDENTE' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' :
-                                                            'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                                                <td className="py-3 px-4">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${row.status === 'PAGO'
+                                                        ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50'
+                                                        : row.status === 'PENDENTE'
+                                                            ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/50'
+                                                            : 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800/50'
                                                         }`}>
                                                         {row.status}
                                                     </span>
@@ -419,6 +498,30 @@ export const Comissoes: React.FC = () => {
                                                         <div className="text-[10px] text-slate-400 mt-1" title={row.paymentInfo.created_at}>
                                                             {t('comissoes.table.paid_on')} {new Date(row.paymentInfo.created_at).toLocaleDateString()}
                                                         </div>
+                                                    )}
+                                                </td>
+                                                <td className="py-3 px-4 w-12">
+                                                    {isSupervisor && (
+                                                        <>
+                                                            {(row._type === 'payment_record' || row._type === 'adjustment') && (
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleRevertPayment(row._id); }}
+                                                                    className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                                    title="Reverter/Excluir Lançamento"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            )}
+                                                            {(row._type === 'generated' && row.status === 'PAGO' && row.paymentInfo) && (
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleRevertPayment(row.paymentInfo!.id); }}
+                                                                    className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                                    title="Reverter Pagamento"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            )}
+                                                        </>
                                                     )}
                                                 </td>
                                             </tr>

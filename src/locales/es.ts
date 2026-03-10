@@ -194,9 +194,9 @@ export const es = {
     }
   },
   funcionarios: {
-    title: 'Empleados',
-    subtitle: 'Administrar el registro de colaboradores',
-    btn_new: 'Nuevo Empleado',
+    title: 'Trabajadores',
+    subtitle: 'Administrar el registro de trabajadores',
+    btn_new: 'Nuevo Trabajador',
     filters: {
       search_placeholder: 'Buscar por nombre, departamento, empresa o usuario...',
       all_departments: 'Todos los Departamentos',
@@ -215,10 +215,10 @@ export const es = {
       Desligado: 'Desvinculado',
       Indefinido: 'Indefinido'
     },
-    empty_search: 'No se encontró ningún empleado.',
+    empty_search: 'No se encontró ningún trabajador.',
     modal: {
-      title_new: 'Nuevo Empleado',
-      title_edit: 'Editar Empleado',
+      title_new: 'Nuevo Trabajador',
+      title_edit: 'Editar Trabajador',
       personal_info: 'Información Personal',
       full_name: 'Nombre Completo *',
       birth_date: 'Fecha de Nacimiento',
@@ -239,7 +239,7 @@ export const es = {
       system_user: 'Usuario (Sistema)',
       btn_cancel: 'Cancelar',
       btn_save: 'Guardar Cambios',
-      btn_create: 'Crear Empleado',
+      btn_create: 'Crear Trabajador',
       placeholder_name: 'Ej: Juan Pérez',
       placeholder_email: 'email@empresa.com',
       placeholder_phone: '(00) 0000-0000',
@@ -250,11 +250,11 @@ export const es = {
     messages: {
       error_loading: 'Error al cargar los datos. Por favor, inténtelo de nuevo.',
       error_mandatory: 'Nombre completo y Departamento son obligatorios.',
-      error_update: 'Error al actualizar empleado.',
-      error_create: 'Error al crear empleado.',
+      error_update: 'Error al actualizar trabajador.',
+      error_create: 'Error al crear trabajador.',
       error_save: 'Ocurrió un error al guardar.',
-      confirm_delete: '¿Está seguro de que desea eliminar este empleado?',
-      error_delete: 'Error al eliminar empleado.'
+      confirm_delete: '¿Está seguro de que desea eliminar este trabajador?',
+      error_delete: 'Error al eliminar trabajador.'
     }
   },
   operacao: {
@@ -302,7 +302,7 @@ export const es = {
     save: 'Guardar'
   },
   import_funcionarios: {
-    title: 'Importar Empleados',
+    title: 'Importar Trabajadores',
     subtitle: 'Soporta archivos .CSV y .XLSX (Excel)',
     click_to_select: 'Haga clic para seleccionar archivo (CSV o Excel)',
     supported_formats: 'Formatos soportados: .csv, .xlsx, .xls',
@@ -329,6 +329,8 @@ export const es = {
     title: 'Gestión de Comisiones',
     subtitle: 'Control de bonos, cuentas por cobrar y cuentas corrientes',
     filters: {
+      start_date: 'Desde',
+      end_date: 'Hasta',
       all_sellers: 'Todos los Vendedores',
       label: 'Filtros:',
       client_placeholder: 'Filtrar por Cliente...',
@@ -353,6 +355,7 @@ export const es = {
     },
     table: {
       title: 'Extracto Detallado',
+      btn_export: 'Exportar a Excel',
       btn_extra: 'Registro Extra',
       btn_pay: 'Pagar',
       col_date: 'Fecha',
@@ -380,10 +383,13 @@ export const es = {
     },
     messages: {
       load_error: 'Error al cargar comisiones.',
-      confirm_pay: '¿Confirma el pago de {{count}} comisiones seleccionadas?',
+      confirm_pay: '¿Confirmar el pago de {{count}} comisiones seleccionadas?',
+      confirm_revert: '¿Estás seguro de que deseas revertir este pago/ajuste?',
       pay_success: '¡Pagos registrados con éxito!',
       pay_error: 'Error al registrar pagos.',
-      save_error: 'Error al guardar ajuste'
+      save_error: 'Error al guardar ajuste.',
+      revert_success: '¡Registro revertido con éxito!',
+      revert_error: 'Error al revertir el registro.'
     }
   }
 };
