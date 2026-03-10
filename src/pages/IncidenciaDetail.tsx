@@ -42,14 +42,14 @@ export const IncidenciaDetail: React.FC = () => {
             const inc = await getIncidencia(id);
             setIncidencia(inc);
             if (inc) {
-                const [t, l, emps, depts] = await Promise.all([
+                const [fetchedTasks, fetchedLogs, emps, depts] = await Promise.all([
                     listTarefas(inc.id),
                     listLogs(inc.id),
                     supabaseEmployeeService.list(),
                     listDepartments()
                 ]);
-                setTarefas(t);
-                setLogs(l);
+                setTarefas(fetchedTasks);
+                setLogs(fetchedLogs);
                 setEmployees(emps.filter(e => e.active));
                 setDepartments(depts);
             }
@@ -77,12 +77,12 @@ export const IncidenciaDetail: React.FC = () => {
 
             await addLog(incidencia.id, newLogText, userName); // Pass User Name
             setNewLogText('');
-            const l = await listLogs(incidencia.id);
-            setLogs(l);
-            toast.success("Log registrado com sucesso");
+            const updatedLogs = await listLogs(incidencia.id);
+            setLogs(updatedLogs);
+            toast.success(t('incidencias.messages.log_success'));
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao registrar log");
+            toast.error(t('incidencias.messages.log_error'));
         }
     };
 
@@ -135,19 +135,19 @@ export const IncidenciaDetail: React.FC = () => {
 
                 await updateIncidencia(incidencia!.id, payload);
                 setIncidencia(prev => prev ? { ...prev, ...payload } : null);
-                await addLog(incidencia!.id, `Status alterado automaticamente para '${newIncidentStatus}'`, 'Sistema');
+                await addLog(incidencia!.id, t('incidencias.logs.auto_status_change', { status: newIncidentStatus }), 'Sistema');
             }
 
             // Sync with backend at the end to guarantee latest state
-            const updatedList = await listTarefas(incidencia!.id);
-            setTarefas(updatedList);
-            const l = await listLogs(incidencia!.id);
-            setLogs(l);
-            toast.success(`Status da tarefa atualizado: ${newStatus}`);
+            const updatedTasks = await listTarefas(incidencia!.id);
+            setTarefas(updatedTasks);
+            const updatedLogs = await listLogs(incidencia!.id);
+            setLogs(updatedLogs);
+            toast.success(t('incidencias.messages.task_status_updated', { status: newStatus }));
 
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao atualizar status da tarefa");
+            toast.error(t('incidencias.messages.task_status_error'));
         }
     };
 
@@ -164,13 +164,13 @@ export const IncidenciaDetail: React.FC = () => {
 
             setIncidencia({ ...incidencia, ...editForm } as any);
             setIsEditingIncidencia(false);
-            toast.success("Incidência atualizada com sucesso");
-            await addLog(incidencia.id, "Detalhes da incidência editados manualmente.", user?.email || 'Sistema');
-            const l = await listLogs(incidencia.id);
-            setLogs(l);
+            toast.success(t('incidencias.messages.update_success'));
+            await addLog(incidencia.id, t('incidencias.logs.manual_edit'), user?.email || 'Sistema');
+            const updatedLogs = await listLogs(incidencia.id);
+            setLogs(updatedLogs);
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao atualizar incidência");
+            toast.error(t('incidencias.messages.update_error'));
         }
     };
 
@@ -188,10 +188,10 @@ export const IncidenciaDetail: React.FC = () => {
         try {
             await assignTarefa(taskId, user.email);
             setTarefas(tarefas.map(t => t.id === taskId ? { ...t, responsavel_email: user.email } : t));
-            toast.success("Tarefa atribuída a você");
+            toast.success(t('incidencias.messages.task_assigned_success'));
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao atribuir tarefa");
+            toast.error(t('incidencias.messages.task_assigned_error'));
         }
     };
 
@@ -207,7 +207,7 @@ export const IncidenciaDetail: React.FC = () => {
                     prazo: newTask.prazo || undefined,
                     responsavel_email: newTask.responsavel_email || null
                 } as any);
-                toast.success("Tarefa atualizada com sucesso");
+                toast.success(t('incidencias.messages.task_update_success'));
             } else {
                 // Create Task Mode
                 await createTarefa({
@@ -220,15 +220,15 @@ export const IncidenciaDetail: React.FC = () => {
                     created_by: user.id,
                     responsavel_email: newTask.responsavel_email || undefined
                 });
-                toast.success("Tarefa criada com sucesso");
+                toast.success(t('incidencias.messages.task_create_success'));
             }
             setIsTaskModalOpen(false);
             setNewTask({ titulo: '', departamento: 'Operações', prazo: '', responsavel_email: '' });
-            const t = await listTarefas(incidencia.id);
-            setTarefas(t);
+            const updatedTasks = await listTarefas(incidencia.id);
+            setTarefas(updatedTasks);
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao salvar tarefa");
+            toast.error(t('incidencias.messages.task_save_error'));
         }
     };
 
@@ -248,10 +248,10 @@ export const IncidenciaDetail: React.FC = () => {
         try {
             await deleteTarefa(taskId);
             setTarefas(tarefas.filter(t => t.id !== taskId));
-            toast.success("Tarefa excluída");
+            toast.success(t('incidencias.messages.task_delete_success'));
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao excluir tarefa");
+            toast.error(t('incidencias.messages.task_delete_error'));
         }
     };
 
@@ -293,7 +293,7 @@ export const IncidenciaDetail: React.FC = () => {
     };
 
     if (loading) return <div className="p-8 text-center text-slate-500">{t('common.loading')}</div>;
-    if (!incidencia) return <div className="p-8 text-center text-red-500">Incidência não encontrada.</div>;
+    if (!incidencia) return <div className="p-8 text-center text-red-500">{t('incidencias.detail.not_found')}</div>;
 
     const getPriorityColor = (p: string) => {
         // Translate priority for check
@@ -406,8 +406,8 @@ export const IncidenciaDetail: React.FC = () => {
                     <div className="text-right text-sm text-slate-500 dark:text-slate-400 flex flex-col items-end gap-2">
                         {isEditingIncidencia ? (
                             <div className="flex gap-2">
-                                <button onClick={() => { setIsEditingIncidencia(false); setEditForm({}); }} className="text-slate-400 hover:text-slate-600 px-2 py-1">Cancelar</button>
-                                <button onClick={handleSaveIncidenciaEdit} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded shadow-sm text-xs font-bold">Salvar</button>
+                                <button onClick={() => { setIsEditingIncidencia(false); setEditForm({}); }} className="text-slate-400 hover:text-slate-600 px-2 py-1">{t('common.cancel')}</button>
+                                <button onClick={handleSaveIncidenciaEdit} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded shadow-sm text-xs font-bold">{t('common.save')}</button>
                             </div>
                         ) : (
                             <button
@@ -424,7 +424,7 @@ export const IncidenciaDetail: React.FC = () => {
                                 }}
                                 className="text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-1 text-xs font-medium bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700"
                             >
-                                <Edit size={12} /> Editar
+                                <Edit size={12} /> {t('common.edit') || "Editar"}
                             </button>
                         )}
                         <div className="flex items-center justify-end gap-1 mb-1 mt-1">
@@ -706,7 +706,7 @@ export const IncidenciaDetail: React.FC = () => {
                         </div>
                         <form onSubmit={handleCreateTask} className="p-4 space-y-4">
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Título da Tarefa</label>
+                                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">{t('incidencias.detail.task_title')}</label>
                                 <input
                                     required
                                     type="text"
@@ -733,7 +733,7 @@ export const IncidenciaDetail: React.FC = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Prazo Limite</label>
+                                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">{t('incidencias.detail.deadline')}</label>
                                 <input
                                     type="date"
                                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none"
@@ -742,13 +742,13 @@ export const IncidenciaDetail: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Atribuir a (Opcional)</label>
+                                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">{t('incidencias.detail.assign_to')}</label>
                                 <select
                                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none"
                                     value={newTask.responsavel_email || ''}
                                     onChange={e => setNewTask({ ...newTask, responsavel_email: e.target.value })}
                                 >
-                                    <option value="">Não atribuir (Fica livre)</option>
+                                    <option value="">{t('incidencias.detail.unassigned')}</option>
                                     {employees.map(emp => (
                                         <option key={emp.id} value={emp.correoempresarial}>{emp.nombrecompleto}</option>
                                     ))}

@@ -3,8 +3,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { commissionService } from '../../services/db/SupabaseCommissionService';
 import { CommissionGenerated, CommissionLancamento, CommissionSettings } from '../../types/models';
 import { Filter, DollarSign, Wallet, ArrowDownCircle, Info, PlusCircle } from 'lucide-react';
+import { useLanguage } from '../../i18n';
 
 export const Comissoes: React.FC = () => {
+    const { t } = useLanguage();
     const { user } = useAuth();
     const [settings, setSettings] = useState<CommissionSettings | null>(null);
     const [geradas, setGeradas] = useState<CommissionGenerated[]>([]);
@@ -50,7 +52,7 @@ export const Comissoes: React.FC = () => {
             setSelectedIds(new Set()); // Reset selections on reload
         } catch (error) {
             console.error("Failed to load commissions:", error);
-            alert("Erro ao carregar comissões.");
+            alert(t('comissoes.messages.load_error'));
         } finally {
             setLoading(false);
         }
@@ -182,7 +184,7 @@ export const Comissoes: React.FC = () => {
 
     const handlePaySelected = async () => {
         if (selectedIds.size === 0 || !user) return;
-        if (!window.confirm(`Confirma o pagamento de ${selectedIds.size} comissões selecionadas?`)) return;
+        if (!window.confirm(t('comissoes.messages.confirm_pay', { count: selectedIds.size }))) return;
 
         try {
             const paymentsToMake = rows
@@ -196,11 +198,11 @@ export const Comissoes: React.FC = () => {
                 }));
 
             await commissionService.registerPayments(paymentsToMake, user.id);
-            alert('Pagamentos registrados com sucesso!');
+            alert(t('comissoes.messages.pay_success'));
             loadData(); // Reload
         } catch (error) {
             console.error('Error paying:', error);
-            alert('Erro ao registrar pagamentos.');
+            alert(t('comissoes.messages.pay_error'));
         }
     };
 
@@ -221,7 +223,7 @@ export const Comissoes: React.FC = () => {
             loadData();
         } catch (error) {
             console.error(error);
-            alert('Erro ao salvar ajuste');
+            alert(t('comissoes.messages.save_error'));
         }
     };
 
@@ -229,8 +231,8 @@ export const Comissoes: React.FC = () => {
         <div className="p-6 max-w-7xl mx-auto space-y-6 text-slate-800 dark:text-slate-100">
             <div className="flex flex-col md:flex-row justify-between break-words gap-4 border-b border-slate-200 dark:border-slate-700 pb-4">
                 <div>
-                    <h1 className="text-2xl font-bold">Gestão de Comissões</h1>
-                    <p className="text-slate-500 text-sm">Controle de bônus, recebíveis e contas corrrentes</p>
+                    <h1 className="text-2xl font-bold">{t('comissoes.title')}</h1>
+                    <p className="text-slate-500 text-sm">{t('comissoes.subtitle')}</p>
                 </div>
 
                 {/* Filters */}
@@ -250,7 +252,7 @@ export const Comissoes: React.FC = () => {
                             onChange={e => setVendedorFilter(e.target.value)}
                             className="bg-white dark:bg-slate-800 border dark:border-slate-700 px-3 py-2 text-sm rounded-lg outline-none max-w-xs"
                         >
-                            <option value="">Todos os Vendedores</option>
+                            <option value="">{t('comissoes.filters.all_sellers')}</option>
                             {allSellers.map(s => (
                                 <option key={s.email} value={s.email}>{s.name} ({s.email})</option>
                             ))}
@@ -261,17 +263,17 @@ export const Comissoes: React.FC = () => {
 
             {/* Advanced Filters Row */}
             <div className="flex flex-wrap gap-3 items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                <span className="text-sm font-medium text-slate-500 hidden sm:block">Filtros:</span>
+                <span className="text-sm font-medium text-slate-500 hidden sm:block">{t('comissoes.filters.label')}</span>
                 <input
                     type="text"
-                    placeholder="Filtrar por Cliente..."
+                    placeholder={t('comissoes.filters.client_placeholder')}
                     value={clienteFilter}
                     onChange={e => setClienteFilter(e.target.value)}
                     className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm rounded-lg outline-none w-full sm:w-48 placeholder-slate-400"
                 />
                 <input
                     type="text"
-                    placeholder="Pedido (PO-...)"
+                    placeholder={t('comissoes.filters.order_placeholder')}
                     value={pedidoFilter}
                     onChange={e => setPedidoFilter(e.target.value)}
                     className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm rounded-lg outline-none w-full sm:w-40 placeholder-slate-400"
@@ -281,11 +283,11 @@ export const Comissoes: React.FC = () => {
                     onChange={e => setTipoFilter(e.target.value)}
                     className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm rounded-lg outline-none w-full sm:w-auto text-slate-700 dark:text-slate-300"
                 >
-                    <option value="">Todos os Lançamentos</option>
-                    <option value="contratacao">(+) Contratação Base</option>
-                    <option value="bonus_cliente_novo">(+) Bônus Novo Cliente</option>
-                    <option value="desconto_reemplazo">(-) Substituições (Desc.)</option>
-                    <option value="ajuste">Ajustes / Pagamentos</option>
+                    <option value="">{t('comissoes.filters.all_entries')}</option>
+                    <option value="contratacao">{t('comissoes.filters.type_hire')}</option>
+                    <option value="bonus_cliente_novo">{t('comissoes.filters.type_bonus')}</option>
+                    <option value="desconto_reemplazo">{t('comissoes.filters.type_discount')}</option>
+                    <option value="ajuste">{t('comissoes.filters.type_adjust')}</option>
                 </select>
             </div>
 
@@ -293,7 +295,7 @@ export const Comissoes: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col justify-center">
                     <div className="flex items-center gap-2 text-slate-500 mb-1">
-                        <Wallet size={16} /> <span className="text-xs font-semibold uppercase tracking-wider">A Receber / Saldo</span>
+                        <Wallet size={16} /> <span className="text-xs font-semibold uppercase tracking-wider">{t('comissoes.cards.to_receive')}</span>
                     </div>
                     <div className={`text-2xl font-bold ${calc.totalReceber < 0 ? 'text-red-500' : 'text-slate-800 dark:text-white'}`}>
                         € {calc.totalReceber.toFixed(2)}
@@ -301,7 +303,7 @@ export const Comissoes: React.FC = () => {
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col justify-center">
                     <div className="flex items-center gap-2 text-slate-500 mb-1">
-                        <DollarSign size={16} /> <span className="text-xs font-semibold uppercase tracking-wider">Total Pago (Mês)</span>
+                        <DollarSign size={16} /> <span className="text-xs font-semibold uppercase tracking-wider">{t('comissoes.cards.total_paid')}</span>
                     </div>
                     <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                         € {calc.totalPago.toFixed(2)}
@@ -309,7 +311,7 @@ export const Comissoes: React.FC = () => {
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col justify-center">
                     <div className="flex items-center gap-2 text-slate-500 mb-1">
-                        <ArrowDownCircle size={16} /> <span className="text-xs font-semibold uppercase tracking-wider">Lançamentos / Ajustes</span>
+                        <ArrowDownCircle size={16} /> <span className="text-xs font-semibold uppercase tracking-wider">{t('comissoes.cards.adjustments')}</span>
                     </div>
                     <div className="text-2xl font-bold text-orange-500">
                         € {calc.totalAjustes.toFixed(2)}
@@ -318,12 +320,12 @@ export const Comissoes: React.FC = () => {
                 {/* Settings Block Info */}
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex flex-col justify-center">
                     <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 mb-1">
-                        <Info size={16} /> <span className="text-xs font-semibold uppercase tracking-wider">Regras Comerciais</span>
+                        <Info size={16} /> <span className="text-xs font-semibold uppercase tracking-wider">{t('comissoes.cards.rules')}</span>
                     </div>
                     <div className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
-                        <div>Base: <b>€ {settings?.comissao_base || 0}</b></div>
-                        <div>Cliente Novo: <b>€ {settings?.bonus_novo_cliente || 0}</b></div>
-                        <div>Carência Desconto: <b>{settings?.carencia_dias || 0} dias</b></div>
+                        <div>{t('comissoes.rules.base')}: <b>€ {settings?.comissao_base || 0}</b></div>
+                        <div>{t('comissoes.rules.new_client')}: <b>€ {settings?.bonus_novo_cliente || 0}</b></div>
+                        <div>{t('comissoes.rules.grace_period')}: <b>{settings?.carencia_dias || 0} {t('comissoes.rules.days')}</b></div>
                     </div>
                 </div>
             </div>
@@ -331,21 +333,21 @@ export const Comissoes: React.FC = () => {
             {/* Main Table */}
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-                    <h2 className="font-semibold">Extrato Detalhado</h2>
+                    <h2 className="font-semibold">{t('comissoes.table.title')}</h2>
                     {isSupervisor && (
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setIsAdjustmentModalOpen(true)}
                                 className="px-3 py-1.5 text-xs font-medium border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1"
                             >
-                                <PlusCircle size={14} /> Lançamento Extra
+                                <PlusCircle size={14} /> {t('comissoes.table.btn_extra')}
                             </button>
                             <button
                                 onClick={handlePaySelected}
                                 disabled={selectedIds.size === 0}
                                 className={`px-4 py-1.5 text-sm font-medium rounded transition-colors ${selectedIds.size > 0 ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'}`}
                             >
-                                Pagar ({selectedIds.size})
+                                {t('comissoes.table.btn_pay')} ({selectedIds.size})
                             </button>
                         </div>
                     )}
@@ -363,17 +365,17 @@ export const Comissoes: React.FC = () => {
                                             <input type="checkbox" onChange={handleSelectAll} className="rounded" />
                                         </th>
                                     )}
-                                    <th className="px-4 py-3 text-slate-600 dark:text-slate-300 font-semibold">Data</th>
-                                    {(!vendedorFilter && isSupervisor) && <th className="px-4 py-3 text-slate-600 dark:text-slate-300 font-semibold">Vendedor</th>}
-                                    <th className="px-4 py-3 text-slate-600 dark:text-slate-300 font-semibold">Histórico</th>
-                                    <th className="px-4 py-3 text-right text-slate-600 dark:text-slate-300 font-semibold">Valor (€)</th>
-                                    <th className="px-4 py-3 text-center text-slate-600 dark:text-slate-300 font-semibold">Status</th>
+                                    <th className="px-4 py-3 text-slate-600 dark:text-slate-300 font-semibold">{t('comissoes.table.col_date')}</th>
+                                    {(!vendedorFilter && isSupervisor) && <th className="px-4 py-3 text-slate-600 dark:text-slate-300 font-semibold">{t('comissoes.table.col_seller')}</th>}
+                                    <th className="px-4 py-3 text-slate-600 dark:text-slate-300 font-semibold">{t('comissoes.table.col_history')}</th>
+                                    <th className="px-4 py-3 text-right text-slate-600 dark:text-slate-300 font-semibold">{t('comissoes.table.col_value')}</th>
+                                    <th className="px-4 py-3 text-center text-slate-600 dark:text-slate-300 font-semibold">{t('comissoes.table.col_status')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {filteredRows.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-4 py-8 text-center text-slate-400 italic">Nenhum lançamento no período selecionado.</td>
+                                        <td colSpan={6} className="px-4 py-8 text-center text-slate-400 italic">{t('comissoes.table.empty')}</td>
                                     </tr>
                                 ) : (
                                     filteredRows.map(row => {
@@ -415,7 +417,7 @@ export const Comissoes: React.FC = () => {
                                                     </span>
                                                     {row.paymentInfo && (
                                                         <div className="text-[10px] text-slate-400 mt-1" title={row.paymentInfo.created_at}>
-                                                            Pago em {new Date(row.paymentInfo.created_at).toLocaleDateString()}
+                                                            {t('comissoes.table.paid_on')} {new Date(row.paymentInfo.created_at).toLocaleDateString()}
                                                         </div>
                                                     )}
                                                 </td>
@@ -433,23 +435,23 @@ export const Comissoes: React.FC = () => {
             {isAdjustmentModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-md shadow-xl border dark:border-slate-700">
-                        <h3 className="text-xl font-bold mb-4">Novo Acerto / Lançamento</h3>
+                        <h3 className="text-xl font-bold mb-4">{t('comissoes.modal.title')}</h3>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Tabela de Lançamento</label>
+                                <label className="block text-sm font-medium mb-1">{t('comissoes.modal.table_label')}</label>
                                 <select
                                     value={adjForm.tipo}
                                     onChange={e => setAdjForm({ ...adjForm, tipo: e.target.value })}
                                     className="w-full border dark:border-slate-700 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900 dark:text-white"
                                 >
-                                    <option value="ajuste_positivo">Ajuste Positivo (+)</option>
-                                    <option value="ajuste_negativo">Ajuste Negativo (-)</option>
-                                    <option value="pagamento">Pagamento Avulso (-)</option>
+                                    <option value="ajuste_positivo">{t('comissoes.modal.type_pos')}</option>
+                                    <option value="ajuste_negativo">{t('comissoes.modal.type_neg')}</option>
+                                    <option value="pagamento">{t('comissoes.modal.type_pay')}</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-1">Vendedor</label>
+                                <label className="block text-sm font-medium mb-1">{t('comissoes.modal.seller_label')}</label>
                                 <select
                                     value={adjForm.email}
                                     onChange={e => {
@@ -458,16 +460,16 @@ export const Comissoes: React.FC = () => {
                                     }}
                                     className="w-full border dark:border-slate-700 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900 dark:text-white"
                                 >
-                                    <option value="">Selecione um vendedor existente...</option>
+                                    <option value="">{t('comissoes.modal.seller_placeholder')}</option>
                                     {allSellers.map(s => <option key={s.email} value={s.email}>{s.name}</option>)}
                                 </select>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-1">Descrição</label>
+                                <label className="block text-sm font-medium mb-1">{t('comissoes.modal.desc_label')}</label>
                                 <input
                                     type="text"
-                                    placeholder="Ex: Pagamento Adiantado / Desconto Avarias"
+                                    placeholder={t('comissoes.modal.desc_placeholder')}
                                     value={adjForm.descricao}
                                     onChange={e => setAdjForm({ ...adjForm, descricao: e.target.value })}
                                     className="w-full border dark:border-slate-700 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900 dark:text-white"
@@ -475,7 +477,7 @@ export const Comissoes: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-1">Valor (€)</label>
+                                <label className="block text-sm font-medium mb-1">{t('comissoes.modal.value_label')}</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -485,7 +487,7 @@ export const Comissoes: React.FC = () => {
                                     onChange={e => setAdjForm({ ...adjForm, valor: e.target.value })}
                                     className="w-full border dark:border-slate-700 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900 dark:text-white"
                                 />
-                                <p className="text-xs text-slate-400 mt-1">Sempre lance o valor positivo absoluto. O sistema fará a subtração se for ajuste negativo ou adiantamento.</p>
+                                <p className="text-xs text-slate-400 mt-1">{t('comissoes.modal.value_hint')}</p>
                             </div>
                         </div>
 
@@ -494,14 +496,14 @@ export const Comissoes: React.FC = () => {
                                 onClick={() => setIsAdjustmentModalOpen(false)}
                                 className="px-4 py-2 border dark:border-slate-600 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                             >
-                                Cancelar
+                                {t('comissoes.modal.btn_cancel')}
                             </button>
                             <button
                                 onClick={handleSaveAdjustment}
                                 disabled={!adjForm.email || !adjForm.valor}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                             >
-                                Salvar Lançamento
+                                {t('comissoes.modal.btn_save')}
                             </button>
                         </div>
                     </div>

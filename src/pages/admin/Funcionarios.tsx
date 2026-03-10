@@ -372,7 +372,7 @@ export const Funcionarios: React.FC = () => {
                                                 value={formData.nombrecompleto}
                                                 onChange={(e) => setFormData({ ...formData, nombrecompleto: e.target.value })}
                                                 className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                placeholder="Ex: João da Silva"
+                                                placeholder={t('funcionarios.modal.placeholder_name')}
                                             />
                                         </div>
                                     </div>
@@ -408,7 +408,7 @@ export const Funcionarios: React.FC = () => {
                                                 value={formData.correoempresarial}
                                                 onChange={(e) => setFormData({ ...formData, correoempresarial: e.target.value })}
                                                 className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                placeholder="email@empresa.com"
+                                                placeholder={t('funcionarios.modal.placeholder_email')}
                                             />
                                         </div>
                                     </div>
@@ -425,7 +425,7 @@ export const Funcionarios: React.FC = () => {
                                                     value={formData.telefonodirecto}
                                                     onChange={(e) => setFormData({ ...formData, telefonodirecto: e.target.value })}
                                                     className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                    placeholder="(00) 0000-0000"
+                                                    placeholder={t('funcionarios.modal.placeholder_phone')}
                                                 />
                                             </div>
                                         </div>
@@ -438,7 +438,7 @@ export const Funcionarios: React.FC = () => {
                                                 value={formData.extenciontelefonica}
                                                 onChange={(e) => setFormData({ ...formData, extenciontelefonica: e.target.value })}
                                                 className="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                placeholder="Ex: 123"
+                                                placeholder={t('funcionarios.modal.placeholder_extension')}
                                             />
                                         </div>
                                     </div>
@@ -557,7 +557,7 @@ export const Funcionarios: React.FC = () => {
                                                     value={formData.iban}
                                                     onChange={(e) => setFormData({ ...formData, iban: e.target.value })}
                                                     className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                    placeholder="PT50..."
+                                                    placeholder={t('funcionarios.modal.placeholder_iban')}
                                                 />
                                             </div>
                                         </div>
@@ -574,7 +574,7 @@ export const Funcionarios: React.FC = () => {
                                                         value={formData.usuario}
                                                         onChange={(e) => setFormData({ ...formData, usuario: e.target.value })}
                                                         className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        placeholder="Nome de usuário ou login"
+                                                        placeholder={t('funcionarios.modal.placeholder_user')}
                                                     />
                                                 </div>
                                             </div>

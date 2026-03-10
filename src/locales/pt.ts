@@ -12,6 +12,11 @@ export const pt = {
     tarefas_modelo: 'Modelos de Tarefas',
     departamentos: 'Departamentos',
     funcionarios: 'Funcionários',
+    clientes: 'Clientes',
+    comissoes: 'Gestão de Comissões',
+    importar_dados: 'Importar Dados',
+    usuarios: 'Usuários (Login)',
+    sair: 'Sair',
     main_menu: 'Menu Principal',
     daily_mgmt: 'Gestão Diária',
     version: 'v2.5.0 (Operações)',
@@ -91,7 +96,12 @@ export const pt = {
       no_tasks: 'Nenhuma tarefa pendente.',
       no_logs: 'Nenhum registro ainda.',
       comment_placeholder: 'Adicionar comentário ou atualização...',
-      save_task: 'Salvar Tarefa'
+      save_task: 'Salvar Tarefa',
+      not_found: 'Incidência não encontrada.',
+      task_title: 'Título da Tarefa',
+      deadline: 'Prazo Limite',
+      assign_to: 'Atribuir a (Opcional)',
+      unassigned: 'Não atribuir (Fica livre)'
     },
     modal_nova_tarefa: {
       title_process: 'Iniciar Novo Processo',
@@ -120,6 +130,25 @@ export const pt = {
       search_order_placeholder: 'Código...',
       time_hours: 'Horas',
       time_days: 'Dias'
+    },
+    messages: {
+      log_success: 'Log registrado com sucesso',
+      log_error: 'Erro ao registrar log',
+      task_status_updated: 'Status da tarefa atualizado: {{status}}',
+      task_status_error: 'Erro ao atualizar status da tarefa',
+      update_success: 'Incidência atualizada com sucesso',
+      update_error: 'Erro ao atualizar incidência',
+      task_assigned_success: 'Tarefa atribuída a você',
+      task_assigned_error: 'Erro ao atribuir tarefa',
+      task_update_success: 'Tarefa atualizada com sucesso',
+      task_create_success: 'Tarefa criada com sucesso',
+      task_save_error: 'Erro ao salvar tarefa',
+      task_delete_success: 'Tarefa excluída',
+      task_delete_error: 'Erro ao excluir tarefa'
+    },
+    logs: {
+      auto_status_change: "Status alterado automaticamente para '{{status}}'",
+      manual_edit: "Detalhes da incidência editados manualmente."
     }
   },
   tasks: {
@@ -156,7 +185,13 @@ export const pt = {
     },
     atrasado: 'ATRASADO',
     vencida_ha: 'Vencida há {{days}} dias',
-    assigned_to: 'Atribuído a'
+    assigned_to: 'Atribuído a',
+    messages: {
+      delete_success: 'Tarefa excluída',
+      delete_error: 'Erro ao excluir tarefa',
+      update_success: 'Tarefa atualizada',
+      update_error: 'Erro ao atualizar tarefa'
+    }
   },
   funcionarios: {
     title: 'Funcionários',
@@ -204,7 +239,13 @@ export const pt = {
       system_user: 'Usuário (Sistema)',
       btn_cancel: 'Cancelar',
       btn_save: 'Salvar Alterações',
-      btn_create: 'Criar Funcionário'
+      btn_create: 'Criar Funcionário',
+      placeholder_name: 'Ex: João da Silva',
+      placeholder_email: 'email@empresa.com',
+      placeholder_phone: '(00) 0000-0000',
+      placeholder_extension: 'Ex: 123',
+      placeholder_iban: 'PT50...',
+      placeholder_user: 'Nome de usuário ou login'
     },
     messages: {
       error_loading: 'Erro ao carregar dados. Por favor, tente novamente.',
@@ -259,5 +300,90 @@ export const pt = {
     not_assigned: 'Não atribuído',
     cancel: 'Cancelar',
     save: 'Salvar'
+  },
+  import_funcionarios: {
+    title: 'Importar Funcionários',
+    subtitle: 'Suporta arquivos .CSV e .XLSX (Excel)',
+    click_to_select: 'Clique para selecionar arquivo (CSV ou Excel)',
+    supported_formats: 'Formatos suportados: .csv, .xlsx, .xls',
+    success: 'Sucesso',
+    errors: 'Erros',
+    btn_start: 'Iniciar Importação',
+    btn_processing: 'Processando...',
+    logs: {
+      error_companies: 'Erro ao buscar empresas',
+      reading_file: 'Lendo arquivo',
+      read_success: 'Arquivo lido com sucesso! {{count}} linhas encontradas.',
+      read_error: 'Erro ao ler arquivo',
+      no_data: 'Nenhum dado para processar.',
+      starting: 'Iniciando processamento...',
+      header_detected: 'Cabeçalho detectado na linha 1.',
+      error_dept: 'ERRO - ID Depto "{{dept}}" desconhecido.',
+      db_error: 'Falha no DB',
+      exception: 'Exceção',
+      row: 'Linha',
+      end_process: '--- FIM DO PROCESSO ---'
+    }
+  },
+  comissoes: {
+    title: 'Gestão de Comissões',
+    subtitle: 'Controle de bônus, recebíveis e contas correntes',
+    filters: {
+      all_sellers: 'Todos os Vendedores',
+      label: 'Filtros:',
+      client_placeholder: 'Filtrar por Cliente...',
+      order_placeholder: 'Pedido (PO-...)',
+      all_entries: 'Todos os Lançamentos',
+      type_hire: '(+) Contratação Base',
+      type_bonus: '(+) Bônus Novo Cliente',
+      type_discount: '(-) Substituições (Desc.)',
+      type_adjust: 'Ajustes / Pagamentos'
+    },
+    cards: {
+      to_receive: 'A Receber / Saldo',
+      total_paid: 'Total Pago (Mês)',
+      adjustments: 'Lançamentos / Ajustes',
+      rules: 'Regras Comerciais'
+    },
+    rules: {
+      base: 'Base',
+      new_client: 'Cliente Novo',
+      grace_period: 'Carência Desconto',
+      days: 'dias'
+    },
+    table: {
+      title: 'Extrato Detalhado',
+      btn_extra: 'Lançamento Extra',
+      btn_pay: 'Pagar',
+      col_date: 'Data',
+      col_seller: 'Vendedor',
+      col_history: 'Histórico',
+      col_value: 'Valor (€)',
+      col_status: 'Status',
+      empty: 'Nenhum lançamento no período selecionado.',
+      paid_on: 'Pago em'
+    },
+    modal: {
+      title: 'Novo Acerto / Lançamento',
+      table_label: 'Tabela de Lançamento',
+      type_pos: 'Ajuste Positivo (+)',
+      type_neg: 'Ajuste Negativo (-)',
+      type_pay: 'Pagamento Avulso (-)',
+      seller_label: 'Vendedor',
+      seller_placeholder: 'Selecione um vendedor existente...',
+      desc_label: 'Descrição',
+      desc_placeholder: 'Ex: Pagamento Adiantado / Desconto Avarias',
+      value_label: 'Valor (€)',
+      value_hint: 'Sempre lance o valor positivo absoluto. O sistema fará a subtração se for ajuste negativo ou adiantamento.',
+      btn_cancel: 'Cancelar',
+      btn_save: 'Salvar Lançamento'
+    },
+    messages: {
+      load_error: 'Erro ao carregar comissões.',
+      confirm_pay: 'Confirma o pagamento de {{count}} comissões selecionadas?',
+      pay_success: 'Pagamentos registrados com sucesso!',
+      pay_error: 'Erro ao registrar pagamentos.',
+      save_error: 'Erro ao salvar ajuste'
+    }
   }
 };

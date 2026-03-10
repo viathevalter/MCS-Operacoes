@@ -74,7 +74,7 @@ export const Sidebar: React.FC = () => {
           <NavItem to="/estimaciones" icon={FileText} label={t('menu.estimaciones')} />
           <NavItem to="/pedidos" icon={ShoppingCart} label={t('menu.pedidos')} />
           <NavItem to="/operacao" icon={Activity} label={t('menu.operacao')} />
-          <NavItem to="/clientes" icon={Users} label="Clientes" />
+          <NavItem to="/clientes" icon={Users} label={t('menu.clientes')} />
         </div>
 
         <SectionLabel label={t('menu.daily_mgmt')} />
@@ -82,7 +82,7 @@ export const Sidebar: React.FC = () => {
           <NavItem to="/operacao/tarefas" icon={ListTodo} label={t('menu.minhas_tarefas')} />
           <NavItem to="/incidencias" icon={AlertCircle} label={t('menu.incidencias')} />
           {(user?.isAdmin || user?.isSuperAdmin || user?.profile?.department_id === 'Comercial' || user?.profile?.department_id === 'Comercial') && (
-            <NavItem to="/admin/comissoes" icon={FileText} label="Gestão de Comissões" />
+            <NavItem to="/admin/comissoes" icon={FileText} label={t('menu.comissoes')} />
           )}
         </div>
 
@@ -92,8 +92,8 @@ export const Sidebar: React.FC = () => {
           <NavItem to="/admin/tasks" icon={CheckSquare} label={t('menu.tarefas_modelo')} />
           <NavItem to="/admin/departamentos" icon={Building} label={t('menu.departamentos')} />
           <NavItem to="/admin/funcionarios" icon={UserCog} label={t('menu.funcionarios')} />
-          <NavItem to="/admin/importar-funcionarios" icon={Upload} label="Importar Dados" />
-          <NavItem to="/admin/usuarios" icon={Users} label="Usuários (Login)" />
+          <NavItem to="/admin/importar-funcionarios" icon={Upload} label={t('menu.importar_dados')} />
+          <NavItem to="/admin/usuarios" icon={Users} label={t('menu.usuarios')} />
         </div>
       </div>
 
@@ -118,7 +118,7 @@ export const Sidebar: React.FC = () => {
           <button
             onClick={signOut}
             className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-            title="Sair"
+            title={t('menu.sair')}
           >
             <LogOut size={16} />
           </button>

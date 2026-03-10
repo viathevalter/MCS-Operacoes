@@ -11,7 +11,12 @@ export const es = {
     playbooks: 'Playbooks',
     tarefas_modelo: 'Tareas Modelo',
     departamentos: 'Departamentos',
-    funcionarios: 'Empleados',
+    funcionarios: 'Trabajadores',
+    clientes: 'Clientes',
+    comissoes: 'Gestión de Comisiones',
+    importar_dados: 'Importar Datos',
+    usuarios: 'Usuarios (Acceso)',
+    sair: 'Salir',
     main_menu: 'Menú Principal',
     daily_mgmt: 'Gestión Diaria',
     version: 'v2.5.0 (Operaciones)',
@@ -91,7 +96,12 @@ export const es = {
       no_tasks: 'No hay tareas pendientes.',
       no_logs: 'Ningún registro todavía.',
       comment_placeholder: 'Agregar comentario o actualización...',
-      save_task: 'Guardar Tarea'
+      save_task: 'Guardar Tarea',
+      not_found: 'Incidencia no encontrada.',
+      task_title: 'Título de la Tarea',
+      deadline: 'Plazo Límite',
+      assign_to: 'Asignar a (Opcional)',
+      unassigned: 'No asignar (Queda libre)'
     },
     modal_nova_tarefa: {
       title_process: 'Iniciar Nuevo Proceso',
@@ -120,6 +130,25 @@ export const es = {
       search_order_placeholder: 'Código...',
       time_hours: 'Horas',
       time_days: 'Días'
+    },
+    messages: {
+      log_success: 'Log registrado con éxito',
+      log_error: 'Error al registrar el log',
+      task_status_updated: 'Estado de la tarea actualizado: {{status}}',
+      task_status_error: 'Error al actualizar el estado de la tarea',
+      update_success: 'Incidencia actualizada con éxito',
+      update_error: 'Error al actualizar la incidencia',
+      task_assigned_success: 'Tarea asignada a ti',
+      task_assigned_error: 'Error al asignar la tarea',
+      task_update_success: 'Tarea actualizada con éxito',
+      task_create_success: 'Tarea creada con éxito',
+      task_save_error: 'Error al guardar la tarea',
+      task_delete_success: 'Tarea eliminada',
+      task_delete_error: 'Error al eliminar la tarea'
+    },
+    logs: {
+      auto_status_change: "Estado alterado automáticamente a '{{status}}'",
+      manual_edit: "Detalles de la incidencia editados manualmente."
     }
   },
   tasks: {
@@ -156,7 +185,13 @@ export const es = {
     },
     atrasado: 'RETRASADO',
     vencida_ha: 'Vencida hace {{days}} días',
-    assigned_to: 'Asignado a'
+    assigned_to: 'Asignado a',
+    messages: {
+      delete_success: 'Tarea eliminada',
+      delete_error: 'Error al eliminar la tarea',
+      update_success: 'Tarea actualizada',
+      update_error: 'Error al actualizar la tarea'
+    }
   },
   funcionarios: {
     title: 'Empleados',
@@ -204,7 +239,13 @@ export const es = {
       system_user: 'Usuario (Sistema)',
       btn_cancel: 'Cancelar',
       btn_save: 'Guardar Cambios',
-      btn_create: 'Crear Empleado'
+      btn_create: 'Crear Empleado',
+      placeholder_name: 'Ej: Juan Pérez',
+      placeholder_email: 'email@empresa.com',
+      placeholder_phone: '(00) 0000-0000',
+      placeholder_extension: 'Ej: 123',
+      placeholder_iban: 'ES50...',
+      placeholder_user: 'Nombre de usuario o login'
     },
     messages: {
       error_loading: 'Error al cargar los datos. Por favor, inténtelo de nuevo.',
@@ -259,5 +300,90 @@ export const es = {
     not_assigned: 'No asignado',
     cancel: 'Cancelar',
     save: 'Guardar'
+  },
+  import_funcionarios: {
+    title: 'Importar Empleados',
+    subtitle: 'Soporta archivos .CSV y .XLSX (Excel)',
+    click_to_select: 'Haga clic para seleccionar archivo (CSV o Excel)',
+    supported_formats: 'Formatos soportados: .csv, .xlsx, .xls',
+    success: 'Éxito',
+    errors: 'Errores',
+    btn_start: 'Iniciar Importación',
+    btn_processing: 'Procesando...',
+    logs: {
+      error_companies: 'Error al buscar empresas',
+      reading_file: 'Leyendo archivo',
+      read_success: '¡Archivo leído con éxito! {{count}} líneas encontradas.',
+      read_error: 'Error al leer archivo',
+      no_data: 'No hay datos para procesar.',
+      starting: 'Iniciando procesamiento...',
+      header_detected: 'Encabezado detectado en la línea 1.',
+      error_dept: 'ERROR - ID Depto "{{dept}}" desconocido.',
+      db_error: 'Fallo en la BD',
+      exception: 'Excepción',
+      row: 'Línea',
+      end_process: '--- FIN DEL PROCESO ---'
+    }
+  },
+  comissoes: {
+    title: 'Gestión de Comisiones',
+    subtitle: 'Control de bonos, cuentas por cobrar y cuentas corrientes',
+    filters: {
+      all_sellers: 'Todos los Vendedores',
+      label: 'Filtros:',
+      client_placeholder: 'Filtrar por Cliente...',
+      order_placeholder: 'Pedido (PO-...)',
+      all_entries: 'Todos los Registros',
+      type_hire: '(+) Contratación Base',
+      type_bonus: '(+) Bono Nuevo Cliente',
+      type_discount: '(-) Reemplazos (Desc.)',
+      type_adjust: 'Ajustes / Pagos'
+    },
+    cards: {
+      to_receive: 'A Recibir / Saldo',
+      total_paid: 'Total Pagado (Mes)',
+      adjustments: 'Registros / Ajustes',
+      rules: 'Reglas Comerciales'
+    },
+    rules: {
+      base: 'Base',
+      new_client: 'Cliente Nuevo',
+      grace_period: 'Carencia Descuento',
+      days: 'días'
+    },
+    table: {
+      title: 'Extracto Detallado',
+      btn_extra: 'Registro Extra',
+      btn_pay: 'Pagar',
+      col_date: 'Fecha',
+      col_seller: 'Vendedor',
+      col_history: 'Historial',
+      col_value: 'Valor (€)',
+      col_status: 'Estado',
+      empty: 'Ningún registro en el período seleccionado.',
+      paid_on: 'Pagado el'
+    },
+    modal: {
+      title: 'Nuevo Ajuste / Registro',
+      table_label: 'Tabla de Registro',
+      type_pos: 'Ajuste Positivo (+)',
+      type_neg: 'Ajuste Negativo (-)',
+      type_pay: 'Pago Aislado (-)',
+      seller_label: 'Vendedor',
+      seller_placeholder: 'Seleccione un vendedor existente...',
+      desc_label: 'Descripción',
+      desc_placeholder: 'Ej: Pago Adelantado / Descuento Averías',
+      value_label: 'Valor (€)',
+      value_hint: 'Ingrese siempre el valor absoluto en positivo. El sistema restará si es un ajuste negativo o adelanto.',
+      btn_cancel: 'Cancelar',
+      btn_save: 'Guardar Registro'
+    },
+    messages: {
+      load_error: 'Error al cargar comisiones.',
+      confirm_pay: '¿Confirma el pago de {{count}} comisiones seleccionadas?',
+      pay_success: '¡Pagos registrados con éxito!',
+      pay_error: 'Error al registrar pagos.',
+      save_error: 'Error al guardar ajuste'
+    }
   }
 };

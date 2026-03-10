@@ -97,11 +97,11 @@ export const Tasks: React.FC = () => {
         if (!confirm(t('tasks.actions.confirm_delete') || 'Tem certeza que deseja excluir esta tarefa?')) return;
         try {
             await deleteTarefa(id);
-            toast.success("Tarefa excluída");
+            toast.success(t('tasks.messages.delete_success'));
             await loadData();
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao excluir tarefa");
+            toast.error(t('tasks.messages.delete_error'));
         }
     };
 

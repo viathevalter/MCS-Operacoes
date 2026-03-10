@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabaseClient'; // Corrected Path
 import { Upload, AlertCircle, CheckCircle, FileText, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { useLanguage } from '../../i18n';
 
 const DEPT_MAPPING: Record<string, string> = {
     "1": "eb39d2e2-016f-4bee-a8ac-b020ae7f4feb",
@@ -25,6 +26,7 @@ const DEPT_MAPPING: Record<string, string> = {
 };
 
 export const ImportarFuncionarios: React.FC = () => {
+    const { t } = useLanguage();
     const [fileData, setFileData] = useState<any[]>([]);
     const [logs, setLogs] = useState<string[]>([]);
     const [processing, setProcessing] = useState(false);
@@ -41,7 +43,7 @@ export const ImportarFuncionarios: React.FC = () => {
             .from('empresas')
             .select('id, nome_pbi, nome_comercial');
         if (data) setCompanies(data);
-        if (error) addLog(`Erro ao buscar empresas: ${error.message}`);
+        if (error) addLog(`${t('import_funcionarios.logs.error_companies')}: ${error.message}`);
     };
 
     const addLog = (msg: string) => setLogs(prev => [...prev, msg]);
@@ -51,7 +53,7 @@ export const ImportarFuncionarios: React.FC = () => {
         if (!file) return;
 
         setFileName(file.name);
-        setLogs([`Lendo arquivo: ${file.name}...`]);
+        setLogs([`${t('import_funcionarios.logs.reading_file')}: ${file.name}...`]);
 
         const reader = new FileReader();
 
@@ -65,9 +67,9 @@ export const ImportarFuncionarios: React.FC = () => {
                 // Convert to JSON array of arrays for flexibility
                 const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[][];
                 setFileData(data);
-                addLog(`Arquivo lido com sucesso! ${data.length} linhas encontradas.`);
+                addLog(t('import_funcionarios.logs.read_success', { count: data.length }));
             } catch (error: any) {
-                addLog(`Erro ao ler arquivo: ${error.message}`);
+                addLog(`${t('import_funcionarios.logs.read_error')}: ${error.message}`);
             }
         };
 
@@ -81,11 +83,11 @@ export const ImportarFuncionarios: React.FC = () => {
     };
 
     const processImport = async () => {
-        if (!fileData || fileData.length === 0) return addLog('Nenhum dado para processar.');
+        if (!fileData || fileData.length === 0) return addLog(t('import_funcionarios.logs.no_data'));
 
         setProcessing(true);
         setStats({ success: 0, errors: 0 });
-        setLogs(prev => [...prev, 'Iniciando processamento...']);
+        setLogs(prev => [...prev, t('import_funcionarios.logs.starting')]);
 
         // Create Company Map
         const companyMap = new Map();
@@ -100,7 +102,7 @@ export const ImportarFuncionarios: React.FC = () => {
         // Determine Start Row (Header check)
         let startIndex = 0;
         if (fileData[0] && (String(fileData[0][0]).toLowerCase().includes('usuario') || String(fileData[0][0]).toLowerCase().includes('empresa'))) {
-            addLog('Cabeçalho detectado na linha 1.');
+            addLog(t('import_funcionarios.logs.header_detected'));
             startIndex = 1;
         }
 
@@ -133,7 +135,7 @@ export const ImportarFuncionarios: React.FC = () => {
 
                 const department_id = DEPT_MAPPING[deptIdRaw];
                 if (!department_id) {
-                    addLog(`Linha ${i + 1}: ERRO - ID Depto "${deptIdRaw}" desconhecido.`);
+                    addLog(`${t('import_funcionarios.logs.row')} ${i + 1}: ${t('import_funcionarios.logs.error_dept', { dept: deptIdRaw })}`);
                     errorCount++;
                     continue;
                 }
@@ -169,13 +171,13 @@ export const ImportarFuncionarios: React.FC = () => {
                 const { error } = await supabase.from('mcs_department_members').insert([payload]);
 
                 if (error) {
-                    addLog(`Linha ${i + 1}: Falha no DB - ${error.message}`);
+                    addLog(`${t('import_funcionarios.logs.row')} ${i + 1}: ${t('import_funcionarios.logs.db_error')} - ${error.message}`);
                     errorCount++;
                 } else {
                     successCount++;
                 }
             } catch (err: any) {
-                addLog(`Linha ${i + 1}: Exceção - ${err.message}`);
+                addLog(`${t('import_funcionarios.logs.row')} ${i + 1}: ${t('import_funcionarios.logs.exception')} - ${err.message}`);
                 errorCount++;
             }
 
@@ -186,16 +188,16 @@ export const ImportarFuncionarios: React.FC = () => {
         }
 
         setStats({ success: successCount, errors: errorCount });
-        addLog('--- FIM DO PROCESSO ---');
+        addLog(t('import_funcionarios.logs.end_process'));
         setProcessing(false);
     };
 
     return (
         <div className="p-6 max-w-4xl mx-auto space-y-6">
             <h1 className="text-2xl font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
-                <Upload className="text-blue-600" /> Importar Funcionários
+                <Upload className="text-blue-600" /> {t('import_funcionarios.title')}
             </h1>
-            <p className="text-slate-500">Suporta arquivos .CSV e .XLSX (Excel)</p>
+            <p className="text-slate-500">{t('import_funcionarios.subtitle')}</p>
 
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                 <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-8 text-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
@@ -209,18 +211,18 @@ export const ImportarFuncionarios: React.FC = () => {
                     <label htmlFor="fileUpload" className="cursor-pointer flex flex-col items-center gap-2">
                         <FileSpreadsheet size={48} className="text-green-600" />
                         <span className="text-lg font-medium text-slate-700 dark:text-slate-300">
-                            {fileName || "Clique para selecionar arquivo (CSV ou Excel)"}
+                            {fileName || t('import_funcionarios.click_to_select')}
                         </span>
                         <span className="text-sm text-slate-500">
-                            Formatos suportados: .csv, .xlsx, .xls
+                            {t('import_funcionarios.supported_formats')}
                         </span>
                     </label>
                 </div>
 
                 <div className="mt-6 flex gap-4 items-center justify-between">
                     <div className="flex gap-4 text-sm font-medium">
-                        <span className="flex items-center gap-1 text-green-600 bg-green-50 px-3 py-1 rounded-full"><CheckCircle size={16} /> Sucesso: {stats.success}</span>
-                        <span className="flex items-center gap-1 text-red-600 bg-red-50 px-3 py-1 rounded-full"><AlertCircle size={16} /> Erros: {stats.errors}</span>
+                        <span className="flex items-center gap-1 text-green-600 bg-green-50 px-3 py-1 rounded-full"><CheckCircle size={16} /> {t('import_funcionarios.success')}: {stats.success}</span>
+                        <span className="flex items-center gap-1 text-red-600 bg-red-50 px-3 py-1 rounded-full"><AlertCircle size={16} /> {t('import_funcionarios.errors')}: {stats.errors}</span>
                     </div>
 
                     <button
@@ -228,7 +230,7 @@ export const ImportarFuncionarios: React.FC = () => {
                         disabled={processing || fileData.length === 0}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all"
                     >
-                        {processing ? 'Processando...' : 'Iniciar Importação'}
+                        {processing ? t('import_funcionarios.btn_processing') : t('import_funcionarios.btn_start')}
                     </button>
                 </div>
             </div>
