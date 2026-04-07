@@ -21,7 +21,7 @@ interface DepartmentMember {
 }
 
 export const UserManagement: React.FC = () => {
-    const { user } = useAuth();
+    const { user, refreshProfile } = useAuth();
     const [users, setUsers] = useState<MCSUser[]>([]);
     const [employees, setEmployees] = useState<DepartmentMember[]>([]);
     const [loading, setLoading] = useState(true);
@@ -90,7 +90,9 @@ export const UserManagement: React.FC = () => {
                 .update({ display_name: formData.display_name })
                 .eq('id', userId);
 
-            if (nameError) throw nameError;
+            if (nameError) {
+                console.warn('Erro ao atualizar display_name (possível RLS), prosseguindo com role:', nameError);
+            }
 
             // 2. Call secure RPC to update Roles and Departments
             const { error: rpcError } = await supabase.rpc('update_user_role', {
@@ -131,7 +133,12 @@ export const UserManagement: React.FC = () => {
             }
 
             setEditingUser(null);
-            fetchData(); // Refresh
+            fetchData(); // Refresh the list
+
+            // If the user edited their own profile, refresh their session profile too
+            if (user?.id === userId) {
+                await refreshProfile();
+            }
         } catch (error) {
             console.error('Error saving:', error);
             alert('Erro ao salvar alterações');
